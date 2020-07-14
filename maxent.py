@@ -42,59 +42,62 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
     #
     # svf /= N_TRIALS
 
-    for e in range(N_EXPERTS):
-        all_expert_trajs = trajectories[e]
-        # shuffle indices
-        ind = np.random.permutation(range(len(all_expert_trajs)))
+    for epoch in range(round(n_iters / 2)):
+        print(f"Epochs {epoch/round(n_iters / 2)} completed.")
+        for e in range(N_EXPERTS):
+            all_expert_trajs = trajectories[e]
+            # shuffle indices
+            ind = np.random.permutation(range(len(all_expert_trajs)))
 
-        all_expert_trajs = all_expert_trajs[ind]
-        feature_matrix = feature_matrices[e][ind]
-        for t,trajectory in enumerate(all_expert_trajs):
+            all_expert_trajs = all_expert_trajs[ind]
+            feature_matrix = feature_matrices[e][ind]
+            for t,trajectory in enumerate(all_expert_trajs):
 
-            curr_fmat = feature_matrix[t] # this traj feature matrix
+                curr_fmat = feature_matrix[t] # this traj feature matrix
 
-            # calc feature expectations
-            feat_exp = np.zeros([N_FEAT])
-            svf = np.zeros(N_STATES)
+                # calc feature expectations
+                feat_exp = np.zeros([N_FEAT])
+                svf = np.zeros(N_STATES)
 
 
-            for state, _, _ in trajectory:
-                feat_exp += curr_fmat[state]
+                for state, _, _ in trajectory:
+                    feat_exp += curr_fmat[state]
 
-            #feat_exp /= N_TRIALS
+                #feat_exp /= N_TRIALS
 
-            # optimization
-            for iteration in range(n_iters):
+                # optimization
+                for iteration in range(n_iters):
 
-                if iteration % (n_iters / 20) == 0:
-                    print(f"iteration: {iteration/n_iters}")
+                    #if iteration % (n_iters / 20) == 0:
+                     #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
 
-                # compute expected reward for summarized feature matrix for every state
-                rewards = np.dot(curr_fmat, theta)
+                    # compute expected reward for summarized feature matrix for every state
+                    rewards = np.dot(curr_fmat, theta)
 
-                _, policy = optimal_policy(Tprob, rewards, gamma, error=0.1)
-                #print(f"Policy: {policy}")
+                    #_, policy = optimal_policy(Tprob, rewards, gamma, error=0.1)
+                    policy = find_policy(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
+                    #print(f"Policy: {policy}")
 
-                # compute expected state visitation frequencies
-                esvf = compute_state_visition_freq(Tprob, gamma, trajectory, policy)
-                #print(f"SVF: {svf}")
+                    # compute expected state visitation frequencies
+                    esvf = compute_state_visition_freq(Tprob, gamma, trajectory, policy)
+                    #print(f"SVF: {svf}")
 
-                # compute gradients
-                #grad = feat_exp - esvf.dot(feature_matrix)
-                grad = feat_exp - esvf.dot(curr_fmat)
-                gradients[iteration,] = grad
-                print(f"Grad sum : {np.sum(grad)}")
+                    # compute gradients
+                    #grad = feat_exp - esvf.dot(feature_matrix)
+                    grad = feat_exp - esvf.dot(curr_fmat)
+                    gradients[iteration,] = grad
+                    print(f"Grad sum : {np.sum(grad)}")
 
-                # update params
-                theta = theta + lr * grad
-                print(f"Theta : {theta}")
+                    # update params
+                    theta = theta - lr * grad
+                    #print(f"Theta : {theta}")
 
     # rewards over states
     #TODO: normalize
     #rewards = np.dot(feature_matrix, theta)
     np.save(f'/Users/sean/Projects/rl_bart/data/results/policy_V{year}.npy',policy,allow_pickle=True)
     np.save(f'/Users/sean/Projects/rl_bart/data/results/esvf_V{year}.npy',esvf, allow_pickle=True)
-    np.save(f'/Users/sean/Projects/rl_bart/data/results/svf_V{year}.npy', svf, allow_pickle=True)
+    #np.save(f'/Users/sean/Projects/rl_bart/data/results/svf_V{year}.npy', svf, allow_pickle=True)
     np.save(f'/Users/sean/Projects/rl_bart/data/results/gradients_V{year}.npy', gradients, allow_pickle=True)
 
 

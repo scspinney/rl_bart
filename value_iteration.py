@@ -124,6 +124,58 @@ def compute_state_visition_freq(Tprob, gamma, trajectory, policy):
     #return expected_svf.sum(axis=1)
 
 
+def find_policy(n_states, r, n_actions, discount,
+                           transition_probability):
+    """
+    Find a policy with linear value iteration. Based on the code accompanying
+    the Levine et al. GPIRL paper and on Ziebart's PhD thesis (algorithm 9.1).
+    n_states: Number of states N. int.
+    r: Reward. NumPy array with shape (N,).
+    n_actions: Number of actions A. int.
+    discount: Discount factor of the MDP. float.
+    transition_probability: NumPy array mapping (state_i, action, state_k) to
+        the probability of transitioning from state_i to state_k under action.
+        Shape (N, A, N).
+    -> NumPy array of states and the probability of taking each action in that
+        state, with shape (N, A).
+    """
+
+    # V = value_iteration.value(n_states, transition_probability, r, discount)
+
+    # NumPy's dot really dislikes using inf, so I'm making everything finite
+    # using nan_to_num.
+    V = np.nan_to_num(np.ones((n_states, 1)) * float("-inf"))
+
+    diff = np.ones((n_states,))
+    while (diff > 1e-4).all():  # Iterate until convergence.
+        new_V = r.copy()
+        for j in range(n_actions):
+            for i in range(n_states):
+                new_V[i] = softmax(new_V[i], r[i] + discount*
+                    np.sum(transition_probability[i, j, k] * V[k]
+                           for k in range(n_states)))
+
+        # # This seems to diverge, so we z-score it (engineering hack).
+        new_V = (new_V - new_V.mean())/new_V.std()
+
+        diff = abs(V - new_V)
+        V = new_V
+
+    # We really want Q, not V, so grab that using equation 9.2 from the thesis.
+    Q = np.zeros((n_states, n_actions))
+    for i in range(n_states):
+        for j in range(n_actions):
+            p = np.array([transition_probability[i, j, k]
+                          for k in range(n_states)])
+            Q[i, j] = p.dot(r + discount*V)
+
+    # Softmax by row to interpret these values as probabilities.
+    Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+    Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+    return Q
+
+
+
 
 def pump_prob(p):
 
@@ -131,5 +183,7 @@ def pump_prob(p):
         return 0.0001
     elif p == 1:
         return 0.9999
+    elif p is np.nan:
+        return 0.0001
     else:
         return np.random.binomial(1,p,1)
