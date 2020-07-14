@@ -42,16 +42,18 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
     #
     # svf /= N_TRIALS
 
-    for epoch in range(round(n_iters / 2)):
+    for epoch in range(n_iters):
         print(f"Epochs {epoch/round(n_iters / 2)} completed.")
         for e in range(N_EXPERTS):
             all_expert_trajs = trajectories[e]
             # shuffle indices
             ind = np.random.permutation(range(len(all_expert_trajs)))
 
-            all_expert_trajs = all_expert_trajs[ind]
-            feature_matrix = feature_matrices[e][ind]
+            #all_expert_trajs = all_expert_trajs[ind]
+            #feature_matrix = feature_matrices[e][ind]
+            feature_matrix = feature_matrices[e]
             for t,trajectory in enumerate(all_expert_trajs):
+                print(f"NEW TRAJECTORY NUMBER {t}")
 
                 curr_fmat = feature_matrix[t] # this traj feature matrix
 
@@ -66,7 +68,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
                 #feat_exp /= N_TRIALS
 
                 # optimization
-                for iteration in range(n_iters):
+                for iteration in range(round(n_iters / 4)):
 
                     #if iteration % (n_iters / 20) == 0:
                      #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
@@ -89,7 +91,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
                     print(f"Grad sum : {np.sum(grad)}")
 
                     # update params
-                    theta = theta - lr * grad
+                    theta = theta + lr * grad
                     #print(f"Theta : {theta}")
 
     # rewards over states
