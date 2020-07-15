@@ -1,0 +1,14 @@
+cchardet==2.1.6
+cycler==0.10.0
+Cython==0.29.15
+future==0.18.2
+kiwisolver==1.2.0
+matplotlib==3.2.1
+numpy==1.18.1
+pandas==1.0.1
+pyparsing==2.4.7
+pystan==2.19.1.1
+python-dateutil==2.8.1
+pytz==2019.3
+six==1.14.0
+torch==1.5.1
