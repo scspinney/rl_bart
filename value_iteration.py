@@ -22,52 +22,6 @@ def softmax(x1, x2):
     min_x = min(x1, x2)
     return max_x + np.log(1 + np.exp(min_x - max_x))
 
-def optimal_policy(Tprob, rewards, gamma, error=0.01,stochastic=True):
-    """
-    static value iteration function. Perhaps the most useful function in this repo
-
-    inputs:
-      Tprob         NxAxN_ACTIONS transition probabilities matrix -
-                                P_a[s0, a, s1] is the transition prob of
-                                landing at state s1 when taking action
-                                a at state s0
-      rewards     Nx1 matrix - rewards for all the states
-      gamma       float - RL discount
-      error       float - threshold for a stop
-
-    returns:
-      values    Nx1 matrix - estimated values
-      policy    Nx1 (NxN_ACTIONS if non-det) matrix - policy
-    """
-    N_STATES, N_ACTIONS, _ = np.shape(Tprob)
-
-    values = np.zeros(N_STATES)
-
-    # estimate values
-    while True:
-        values_tmp = values.copy()
-
-        for s in range(N_STATES):
-            v_s = []
-            values[s] = max(
-                [sum([Tprob[s, a, s1] * (rewards[s] + gamma * values_tmp[s1]) for s1 in range(N_STATES)]) for a in
-                 range(N_ACTIONS)])
-
-        if max([abs(values[s] - values_tmp[s]) for s in range(N_STATES)]) < error:
-            break
-
-    policy = np.zeros([N_STATES, N_ACTIONS])
-    for s in range(N_STATES):
-        v_s = np.array([sum([Tprob[s, a, s1] * (rewards[s] + gamma * values[s1]) for s1 in range(N_STATES)]) for a in
-                        range(N_ACTIONS)])
-        policy[s,:] = np.transpose(v_s / np.sum(v_s))
-
-    # terminal, no choices
-    policy[-2:,:] = 0
-
-    return values, policy
-
-
 
 def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoint):
     """compute the expected states visition frequency p(s| theta, T)
@@ -94,51 +48,24 @@ def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, p
     while True:
 
         tmp_exp_svf = start_state_count.copy()
-        for s in range(N_STATES-1):
-            tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
-            tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 1] * Tprob[s,1,-1]
+        for s in range(N_STATES-2):
 
-        if all(abs( tmp_exp_svf - expected_svf) < 0.001):
+            # pump no pop
+            tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
+
+            # pump and pop
+            tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 0]*Tprob[s,0,-1]
+
+            # save
+            tmp_exp_svf[-2] = tmp_exp_svf[-2] + expected_svf[s]*policy[s, 1] * Tprob[s,1,-2]
+
+        if all(abs(tmp_exp_svf - expected_svf) < 0.1):
             break
         else:
             expected_svf = tmp_exp_svf
 
-        # while True:
-        #     choice = np.argmax(policy[state])
-        #
-        #     pump = 1 if choice == 0 else 0
-        #
-        #     if pump: # chose to pump
-        #         #pop = np.random.binomial(1,Tprob[state,0,-1],1)
-        #         if state+1 == popPoint:
-        #             #expected_svf[-1]+=1
-        #             break
-        #         else:
-        #             expected_svf[state+1]+=1
-        #             state+=1
-        #     else: # chose to save
-        #         #expected_svf[-2]+=1
-        #         break
-
-        # else:
-        #     prev_expected_svf = expected_svf
-
     return expected_svf
 
-
-    # expected_svf = np.tile(p_start_state, (30, 1)).T
-    #
-    # for t in range(1, 30):
-    #     expected_svf[:, t] = 0
-    #     for i in range(N_STATES):
-    #         for j in range(N_ACTIONS):
-    #             for k in range(N_STATES):
-    #     #for i, j, k in product(range(N_STATES), range(N_ACTIONS), range(N_STATES)):
-    #                 tmp = expected_svf[k, t - 1] *policy[i, j] * Tprob[i, j, k]
-    #                 expected_svf[i, t] += tmp
-
-
-    #return expected_svf.sum(axis=1)
 
 
 def find_policy(n_states, r, n_actions, discount,
@@ -197,14 +124,3 @@ def find_policy(n_states, r, n_actions, discount,
 
 
 
-
-def pump_prob(p):
-
-    if p == 0:
-        return 0.0001
-    elif p == 1:
-        return 0.9999
-    elif p is np.nan:
-        return 0.0001
-    else:
-        return np.random.binomial(1,p,1)
