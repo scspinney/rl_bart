@@ -10,6 +10,9 @@ year=1
 # number of trajectories to consider
 N=200
 
+
+popPoints = [64,105,39,96,88,21,121,10,64,32,64,101,26,34,47,121,64,95,75,13,64,112,30,88,9,64,91,17,115,50]
+
 # get all participant data and consider them as a single expert
 
 # trajectories
@@ -37,7 +40,7 @@ Tprob = np.load(os.path.join(maindir,'data',f'transition_prob_Y{year}.npy'))
 
 
 
-reward_weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=0.95, trajectories=trajectories, lr=0.001,n_iters=40, use_prior=False)
+reward_weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=0.95, trajectories=trajectories, lr=0.001,n_iters=40,popPoints=popPoints,use_prior=False)
 
 np.save(os.path.join(maindir,'data','results',f'rewards_weights_{year}.npy'), reward_weights, allow_pickle=True)
 

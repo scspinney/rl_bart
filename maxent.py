@@ -3,7 +3,7 @@ import os
 from value_iteration import *
 
 
-def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_iters,use_prior=False):
+def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_iters,popPoints,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -22,6 +22,8 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
     N_EXPERTS = len(trajectories)
     N_TRIALS = N_EXPERTS*30
     N_FEAT = feature_matrices[0].shape[-1]
+
+    #N_STATES = N_STATES - 2
 
 
     # init parameters
@@ -49,17 +51,19 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
             # shuffle indices
             ind = np.random.permutation(range(len(all_expert_trajs)))
 
-            all_expert_trajs = all_expert_trajs[ind]
-            feature_matrix = feature_matrices[e][ind]
+
+            feature_matrix = feature_matrices[e]
             for t,trajectory in enumerate(all_expert_trajs):
 
                 curr_fmat = feature_matrix[t] # this traj feature matrix
+                #curr_fmat = curr_fmat[:-2,:]
+
 
                 # calc feature expectations
                 feat_exp = np.zeros([N_FEAT])
                 svf = np.zeros(N_STATES)
 
-
+                # TODO: removing terminal states states
                 for state, _, _ in trajectory:
                     feat_exp += curr_fmat[state]
 
@@ -79,17 +83,17 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
                     #print(f"Policy: {policy}")
 
                     # compute expected state visitation frequencies
-                    esvf = compute_state_visition_freq(Tprob, gamma, trajectory, policy)
+                    esvf = compute_state_visition_freq(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoints[t])
                     #print(f"SVF: {svf}")
 
                     # compute gradients
                     #grad = feat_exp - esvf.dot(feature_matrix)
                     grad = feat_exp - esvf.dot(curr_fmat)
                     gradients[iteration,] = grad
-                    print(f"Grad sum : {np.sum(grad)}")
+                    print(f"Grad vec: {grad}")
 
                     # update params
-                    theta = theta - lr * grad
+                    theta = theta + lr * grad
                     #print(f"Theta : {theta}")
 
     # rewards over states
