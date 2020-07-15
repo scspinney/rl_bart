@@ -69,7 +69,7 @@ def optimal_policy(Tprob, rewards, gamma, error=0.01,stochastic=True):
 
 
 
-def compute_state_visition_freq(Tprob, gamma, trajectory, policy):
+def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoint):
     """compute the expected states visition frequency p(s| theta, T)
     using dynamic programming
     inputs:
@@ -81,34 +81,51 @@ def compute_state_visition_freq(Tprob, gamma, trajectory, policy):
     returns:
       p       Nx1 vector - state visitation frequencies
     """
-    N_STATES, N_ACTIONS, _  = np.shape(Tprob)
+
 
     #trajs = np.reshape(trajs,-1)
     trajectory_length = len(trajectory)
 
     start_state_count = np.zeros(N_STATES)
     start_state_count[0] = 1
+    #expected_svf = start_state_count
+    expected_svf = np.zeros(N_STATES)
 
-    expected_svf = start_state_count
-
-    state=0
     while True:
-        pumpp = policy[state,0] # prob of pumping
-        pump = pump_prob(pumpp)
 
-        if pump: # chose to pump
-            pop = np.random.binomial(1,Tprob[state,0,-1],1)
-            if pop:
-                expected_svf[-1]+=1
-                break
-            else:
-                expected_svf[state+1]+=1
-                state+=1
-        else: # chose to save
-            expected_svf[-2]+=1
+        tmp_exp_svf = start_state_count.copy()
+        for s in range(N_STATES-1):
+            tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
+            tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 1] * Tprob[s,1,-1]
+
+        if all(abs( tmp_exp_svf - expected_svf) < 0.001):
             break
+        else:
+            expected_svf = tmp_exp_svf
+
+        # while True:
+        #     choice = np.argmax(policy[state])
+        #
+        #     pump = 1 if choice == 0 else 0
+        #
+        #     if pump: # chose to pump
+        #         #pop = np.random.binomial(1,Tprob[state,0,-1],1)
+        #         if state+1 == popPoint:
+        #             #expected_svf[-1]+=1
+        #             break
+        #         else:
+        #             expected_svf[state+1]+=1
+        #             state+=1
+        #     else: # chose to save
+        #         #expected_svf[-2]+=1
+        #         break
+
+        # else:
+        #     prev_expected_svf = expected_svf
 
     return expected_svf
+
+
     # expected_svf = np.tile(p_start_state, (30, 1)).T
     #
     # for t in range(1, 30):
@@ -144,16 +161,20 @@ def find_policy(n_states, r, n_actions, discount,
 
     # NumPy's dot really dislikes using inf, so I'm making everything finite
     # using nan_to_num.
+    #V = np.zeros((n_states, 1))
     V = np.nan_to_num(np.ones((n_states, 1)) * float("-inf"))
+
 
     diff = np.ones((n_states,))
     while (diff > 1e-4).all():  # Iterate until convergence.
         new_V = r.copy()
         for j in range(n_actions):
-            for i in range(n_states):
+            for i in range(n_states-2):
                 new_V[i] = softmax(new_V[i], r[i] + discount*
                     np.sum(transition_probability[i, j, k] * V[k]
                            for k in range(n_states)))
+                # terminal state
+                new_V[-2:] = 0
 
         # # This seems to diverge, so we z-score it (engineering hack).
         new_V = (new_V - new_V.mean())/new_V.std()
