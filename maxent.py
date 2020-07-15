@@ -3,7 +3,11 @@ import os
 from value_iteration import *
 
 
+<<<<<<< HEAD
 def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_iters,popPoints,use_prior=False):
+=======
+def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,popPoints,use_prior=False):
+>>>>>>> version.autograd
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -26,6 +30,8 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
     #N_STATES = N_STATES - 2
 
 
+    N_STATES-=1
+
     # init parameters
     if use_prior and year > 1:
         theta = np.load(os.path.join(maindir,'data','results',f'rewards_weights_{year-1}.npy'))
@@ -44,33 +50,54 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
     #
     # svf /= N_TRIALS
 
-    for epoch in range(round(n_iters / 2)):
+    for epoch in range(n_iters):
         print(f"Epochs {epoch/round(n_iters / 2)} completed.")
         for e in range(N_EXPERTS):
             all_expert_trajs = trajectories[e]
             # shuffle indices
             ind = np.random.permutation(range(len(all_expert_trajs)))
 
+<<<<<<< HEAD
 
+=======
+            #all_expert_trajs = all_expert_trajs[ind]
+            #feature_matrix = feature_matrices[e][ind]
+>>>>>>> version.autograd
             feature_matrix = feature_matrices[e]
             for t,trajectory in enumerate(all_expert_trajs):
+                print(f"NEW TRAJECTORY NUMBER {t}")
 
                 curr_fmat = feature_matrix[t] # this traj feature matrix
+<<<<<<< HEAD
                 #curr_fmat = curr_fmat[:-2,:]
 
+=======
+                curr_fmat = curr_fmat[:-1,:]
+>>>>>>> version.autograd
 
                 # calc feature expectations
                 feat_exp = np.zeros([N_FEAT])
                 svf = np.zeros(N_STATES)
 
+<<<<<<< HEAD
                 # TODO: removing terminal states states
                 for state, _, _ in trajectory:
                     feat_exp += curr_fmat[state]
+=======
+
+                for state, _, _ in trajectory[:-1]:
+                    if state == 129:
+                        continue
+                    else:
+                        feat_exp += curr_fmat[state]
+>>>>>>> version.autograd
 
                 #feat_exp /= N_TRIALS
 
                 # optimization
-                for iteration in range(n_iters):
+                lr_decay = 100
+                #while True:
+                for iteration in range(round(n_iters/3)):
 
                     #if iteration % (n_iters / 20) == 0:
                      #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
@@ -83,18 +110,35 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr, n_i
                     #print(f"Policy: {policy}")
 
                     # compute expected state visitation frequencies
+<<<<<<< HEAD
                     esvf = compute_state_visition_freq(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoints[t])
+=======
+                    esvf = compute_state_visition_freq(10,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoints[t])
+>>>>>>> version.autograd
                     #print(f"SVF: {svf}")
 
                     # compute gradients
                     #grad = feat_exp - esvf.dot(feature_matrix)
                     grad = feat_exp - esvf.dot(curr_fmat)
+<<<<<<< HEAD
                     gradients[iteration,] = grad
                     print(f"Grad vec: {grad}")
 
                     # update params
                     theta = theta + lr * grad
                     #print(f"Theta : {theta}")
+=======
+                    #gradients[iteration,] = grad
+
+                    # update params
+                    theta = theta + lr/lr_decay * grad
+                    lr_decay+=1
+
+                    # print(f"Grad sum: {np.sum(grad)}")
+                    # if np.sum(grad) < 4:
+                    #     print(f"Theta for trajectory {t}: {theta}")
+                    #     break
+>>>>>>> version.autograd
 
     # rewards over states
     #TODO: normalize
