@@ -4,8 +4,8 @@ import os
 from maxent import *
 import matplotlib.pyplot as plt
 
-maindir = '/Users/sean/Projects/rl_bart'
-year=1
+maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
+year=2
 
 # number of trajectories to consider
 N=200
