@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 maindir = '/Users/sean/Projects/rl_bart'
 year=1
 
-# number of trajectories to consider
-N=200
+
 lr_decay=1000
 
 
@@ -23,17 +22,9 @@ trajectories = [np.load(p,allow_pickle=True) for p in glob.glob(os.path.join(tra
 #trajectories = np.load(traj_path,allow_pickle=True)
 #trajectories = trajectories[1:N]
 
-# feature matrix
-# fmat_path = os.path.join(maindir,'data',f'fmat_Y{year}.npy')
-# feature_matrix = np.load(fmat_path)
-
+# feature matrices
 fmat_paths = os.path.join(maindir,'data',f'V{year}')
 feature_matrices = [np.load(p,allow_pickle=True) for p in glob.glob(os.path.join(fmat_paths,'**','fmat.npy'))]
-
-# normalize features
-#feature_matrix[:,0] = feature_matrix[:,0]/max(feature_matrix[:,0])
-#feature_matrix[:,-1] = feature_matrix[:,-1]/max(feature_matrix[:,-1])
-
 
 
 # transition prob: they are all the same so just pick one
