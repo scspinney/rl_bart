@@ -24,6 +24,8 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     N_TRIALS = N_EXPERTS*30
     N_FEAT = feature_matrices[0].shape[-1]
 
+    #N_STATES-=2
+
     # init parameters
     if use_prior and year > 1:
         theta = np.load(os.path.join(maindir,'data','results',f'rewards_weights_{year-1}.npy'))
@@ -35,40 +37,43 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     gradients = np.zeros((n_iters,N_FEAT))
     policy = np.zeros((N_STATES, N_ACTIONS))
 
-
-    for epoch in range(n_iters):
+    #for epoch in range(1):
+    for epoch in range(round(n_iters/6)):
 
         print(f"Progress {epoch/round(n_iters)}\% completed.")
+        print(f"Theta: {theta}")
         for e in range(N_EXPERTS):
 
-            print(f"Theta for expert {e} on {N_EXPERTS}: {theta}")
+            #print(f"Theta for expert {e} on {N_EXPERTS}: {theta}")
             all_expert_trajs = trajectories[e]
 
-            # shuffle trajectories
-            ind = np.random.permutation(range(len(all_expert_trajs)))
-            all_expert_trajs = all_expert_trajs[ind]
-            feature_matrix = feature_matrices[e][ind]
+            ## shuffle trajectories
+            #ind = np.random.permutation(range(len(all_expert_trajs)))
+            #all_expert_trajs = all_expert_trajs[ind]
+            #feature_matrix = feature_matrices[e][ind]
+            feature_matrix = feature_matrices[e]
 
             for t,trajectory in enumerate(all_expert_trajs):
-                print(f"NEW TRAJECTORY NUMBER {t}")
+               # print(f"NEW TRAJECTORY NUMBER {t}")
 
-                curr_fmat = feature_matrix[t] # this traj feature matrix
+                curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
 
 
                 # calc feature expectations
                 feat_exp = np.zeros([N_FEAT])
-                svf = np.zeros(N_STATES)
+                #svf = np.zeros(N_STATES)
 
-
-                for state, _, _ in trajectory:
+                for state, _, _ in trajectory[:-1]:
                    feat_exp += curr_fmat[state]
 
                 #feat_exp /= N_TRIALS
 
                 # optimization
-                lr_decay = 100
+                lr_decay = 1
                 #while True:
-                for iteration in range(round(n_iters/3)):
+
+                for iteration in range(round(n_iters)):
+                #for iteration in range(1):
 
                     #if iteration % (n_iters / 20) == 0:
                      #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
@@ -88,12 +93,18 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                     # compute gradients
                     grad = feat_exp - esvf.dot(curr_fmat)
 
-                    #gradients[iteration,] = grad
+
+                    #gradients[iteration,] = gradgit
                     #print(f"Grad sum: {np.sum(grad)}")
 
                     # update params
-                    theta = theta + lr/lr_decay * grad
+                    theta += lr * grad
                     lr_decay+=1
+
+                    if abs(grad.sum()) < 1:
+                        # stop from climbing out of min
+                        break
+            print(f"Grad sum: {np.sum(grad)}")
 
 
     np.save(f'/Users/sean/Projects/rl_bart/data/results/policy_V{year}.npy',policy,allow_pickle=True)
