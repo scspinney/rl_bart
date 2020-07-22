@@ -44,20 +44,21 @@ def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, p
     start_state_count[0] = 1
     #expected_svf = start_state_count
     expected_svf = np.zeros(N_STATES)
+    expected_svf[0] = 1
 
     while True:
 
         tmp_exp_svf = start_state_count.copy()
-        for s in range(N_STATES-2):
+        for s in range(N_STATES-1):
 
             # pump no pop
             tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
 
             # pump and pop
-            tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 0]*Tprob[s,0,-1]
+           # tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 0]*Tprob[s,0,-1]
 
             # save
-            tmp_exp_svf[-2] = tmp_exp_svf[-2] + expected_svf[s]*policy[s, 1] * Tprob[s,1,-2]
+            #tmp_exp_svf[-2] = tmp_exp_svf[-2] + expected_svf[s]*policy[s, 1] * Tprob[s,1,-2]
 
         if all(abs(tmp_exp_svf - expected_svf) < 0.1):
             break
@@ -68,8 +69,40 @@ def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, p
 
 
 
+def optimal_value(n_states, n_actions, transition_probabilities, reward,
+                  discount, threshold=1e-2):
+    """
+    Find the optimal value function.
+    n_states: Number of states. int.
+    n_actions: Number of actions. int.
+    transition_probabilities: Function taking (state, action, state) to
+        transition probabilities.
+    reward: Vector of rewards for each state.
+    discount: MDP discount factor. float.
+    threshold: Convergence threshold, default 1e-2. float.
+    -> Array of values for each state
+    """
+
+    v = np.zeros(n_states)
+
+    diff = float("inf")
+    while diff > threshold:
+        diff = 0
+        for s in range(n_states):
+            max_v = float("-inf")
+            for a in range(n_actions):
+                tp = transition_probabilities[s, a, :]
+                max_v = max(max_v, np.dot(tp, reward + discount*v))
+
+            new_diff = abs(v[s] - max_v)
+            if new_diff > diff:
+                diff = new_diff
+            v[s] = max_v
+
+    return v
+
 def find_policy(n_states, r, n_actions, discount,
-                           transition_probability):
+                           transition_probability,v=None,stochastic=True,threshold=1e-2):
     """
     Find a policy with linear value iteration. Based on the code accompanying
     the Levine et al. GPIRL paper and on Ziebart's PhD thesis (algorithm 9.1).
@@ -89,38 +122,66 @@ def find_policy(n_states, r, n_actions, discount,
     # NumPy's dot really dislikes using inf, so I'm making everything finite
     # using nan_to_num.
     #V = np.zeros((n_states, 1))
-    V = np.nan_to_num(np.ones((n_states, 1)) * float("-inf"))
+    # V = np.nan_to_num(np.ones((n_states, 1)) * float("-inf"))
+    #
+    #
+    # diff = np.ones((n_states,))
+    # while (diff > 1e-4).all():  # Iterate until convergence.
+    #     new_V = r.copy()
+    #     for j in range(n_actions):
+    #         for i in range(n_states):
+    #             new_V[i] = softmax(new_V[i], r[i] + discount*
+    #                 np.sum(transition_probability[i, j, k] * V[k]
+    #                        for k in range(n_states)))
+    #             # terminal state
+    #             #new_V[-2:] = 0
+    #
+    #     # # This seems to diverge, so we z-score it (engineering hack).
+    #     #new_V = (new_V - new_V.mean())/new_V.std()
+    #
+    #     diff = abs(V - new_V)
+    #     V = new_V
+    #     V[-2:]=0
 
 
-    diff = np.ones((n_states,))
-    while (diff > 1e-4).all():  # Iterate until convergence.
-        new_V = r.copy()
-        for j in range(n_actions):
-            for i in range(n_states-2):
-                new_V[i] = softmax(new_V[i], r[i] + discount*
-                    np.sum(transition_probability[i, j, k] * V[k]
-                           for k in range(n_states)))
-                # terminal state
-                new_V[-2:] = 0
+    if v is None:
+        v = optimal_value(n_states, n_actions, transition_probability, r,
+                          discount, threshold)
 
-        # # This seems to diverge, so we z-score it (engineering hack).
-        new_V = (new_V - new_V.mean())/new_V.std()
 
-        diff = abs(V - new_V)
-        V = new_V
 
-    # We really want Q, not V, so grab that using equation 9.2 from the thesis.
-    Q = np.zeros((n_states, n_actions))
-    for i in range(n_states):
-        for j in range(n_actions):
-            p = np.array([transition_probability[i, j, k]
-                          for k in range(n_states)])
-            Q[i, j] = p.dot(r + discount*V)
+    if stochastic:
+        # Get Q using equation 9.2 from Ziebart's thesis.
+        Q = np.zeros((n_states, n_actions))
+        for i in range(n_states):
+            for j in range(n_actions):
+                p = transition_probability[i, j, :]
+                Q[i, j] = p.dot(r + discount*v)
+        Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+        Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+        return Q
 
-    # Softmax by row to interpret these values as probabilities.
-    Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
-    Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
-    return Q
+    def _policy(s):
+        return max(range(n_actions),
+                   key=lambda a: sum(transition_probability[s, a, k] *
+                                     (r[k] + discount * v[k])
+                                     for k in range(n_states)))
+    policy = np.array([_policy(s) for s in range(n_states)])
+    return policy
+
+
+    # # We really want Q, not V, so grab that using equation 9.2 from the thesis.
+    # Q = np.zeros((n_states, n_actions))
+    # for i in range(n_states-2):
+    #     for j in range(n_actions):
+    #         p = np.array([transition_probability[i, j, ]
+    #                       for k in range(n_states)])
+    #         Q[i, j] = p.dot(r + discount*V)
+    #
+    # # Softmax by row to interpret these values as probabilities.
+    # Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+    # Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+    # return Q
 
 
 
