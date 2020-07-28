@@ -4,7 +4,7 @@ from value_iteration import *
 
 
 
-def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,popPoints,use_prior=False):
+def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,popPoints,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -34,11 +34,11 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
         theta = np.random.uniform(size=(N_FEAT,))
 
     # keeping track of gradients
-    gradients = np.zeros((n_iters,N_FEAT))
+    gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
     policy = np.zeros((N_STATES, N_ACTIONS))
 
     #for epoch in range(1):
-    for epoch in range(round(2)):
+    for epoch in range(round(n_epochs)):
 
         print(f"Progress {epoch/round(n_iters)}\% completed.")
         print(f"Theta: {theta}")
@@ -72,7 +72,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 lr_decay = 1
                 #while True:
                 #for iteration in range(round(n_iters)):
-                for iteration in range(100):
+                for iteration in range(n_iters):
 
                     #if iteration % (n_iters / 20) == 0:
                      #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
@@ -86,7 +86,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
                     # compute expected state visitation frequencies
 
-                    esvf = compute_state_visition_freq(10,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoints[t])
+                    esvf = compute_state_visition_freq(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy)
                     #print(f"SVF: {svf}")
 
                     # compute gradients
@@ -104,11 +104,15 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                         # stop from climbing out of min
                         break
 
+                gradients[epoch,e,t,:] = grad
+
+
+
                 print(f"Theta: {theta}")
-    np.save(f'policy_V{year}.npy',policy,allow_pickle=True)
-    np.save(f'esvf_V{year}.npy',esvf, allow_pickle=True)
-    np.save(f'theta_V{year}.npy', theta, allow_pickle=True)
-    #np.save(f'/Users/sean/Projects/rl_bart/data/results/gradients_V{year}.npy', gradients, allow_pickle=True)
+    np.save(f'results/policy_V{year}.npy',policy,allow_pickle=True)
+    np.save(f'results/esvf_V{year}.npy',esvf, allow_pickle=True)
+    np.save(f'results/theta_V{year}.npy', theta, allow_pickle=True)
+    np.save(f'results/gradients_V{year}.npy', gradients, allow_pickle=True)
 
     return theta
 

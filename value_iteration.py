@@ -23,7 +23,7 @@ def softmax(x1, x2):
     return max_x + np.log(1 + np.exp(min_x - max_x))
 
 
-def compute_state_visition_freq(N,N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy,popPoint):
+def compute_state_visition_freq(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy):
     """compute the expected states visition frequency p(s| theta, T)
     using dynamic programming
     inputs:
