@@ -6,7 +6,7 @@ from likelihood import *
 import matplotlib.pyplot as plt
 
 maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
-year=2
+year=1
 
 
 lr_decay=1
@@ -34,16 +34,17 @@ Tprob = np.load(os.path.join(maindir,'data',f'transition_prob_Y{year}.npy'))
 #TODO: temp
 Tprob = Tprob[:-2,:,:-2]
 
-reward_weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=1, trajectories=trajectories, lr=0.01,lr_decay=lr_decay,n_iters=60,popPoints=popPoints, use_prior=False)
+
+weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=1, trajectories=trajectories, lr=1E-4,lr_decay=lr_decay,n_iters=12,popPoints=popPoints, use_prior=False)
 
 ### likelihood section
 
-weights = [14.5589288,  -10.91125129, 134.64405279,  -2.04189656,  60.60180254,
-   5.08663998,  27.57215712,  11.22929793,  58.56049503,  69.74105026,
-  -6.38408481]
+#weights = [14.5589288,  -10.91125129, 134.64405279,  -2.04189656,  60.60180254,
+ #  5.08663998,  27.57215712,  11.22929793,  58.56049503,  69.74105026,
+ # -6.38408481]
 
 
-ll = likelihood(trajectories, feature_matrices, weights, discount=0.95, Tprob=Tprob)
+ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
 
 print(ll)
 

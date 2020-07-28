@@ -38,7 +38,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     policy = np.zeros((N_STATES, N_ACTIONS))
 
     #for epoch in range(1):
-    for epoch in range(round(n_iters/6)):
+    for epoch in range(round(2)):
 
         print(f"Progress {epoch/round(n_iters)}\% completed.")
         print(f"Theta: {theta}")
@@ -54,7 +54,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
             feature_matrix = feature_matrices[e]
 
             for t,trajectory in enumerate(all_expert_trajs):
-               # print(f"NEW TRAJECTORY NUMBER {t}")
+                print(f"-------------------- NEW TRAJECTORY NUMBER {t} --------------------------")
 
                 curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
 
@@ -63,7 +63,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 feat_exp = np.zeros([N_FEAT])
                 #svf = np.zeros(N_STATES)
 
-                for state, _, _ in trajectory[:-1]:
+                for state, _ in trajectory:
                    feat_exp += curr_fmat[state]
 
                 #feat_exp /= N_TRIALS
@@ -71,9 +71,8 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 # optimization
                 lr_decay = 1
                 #while True:
-
-                for iteration in range(round(n_iters)):
-                #for iteration in range(1):
+                #for iteration in range(round(n_iters)):
+                for iteration in range(100):
 
                     #if iteration % (n_iters / 20) == 0:
                      #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
@@ -95,21 +94,20 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
 
                     #gradients[iteration,] = gradgit
-                    #print(f"Grad sum: {np.sum(grad)}")
+                    print(f"Grad sum: {np.sum(grad)}")
 
                     # update params
-                    theta += lr * grad
+                    theta += lr/lr_decay * grad
                     lr_decay+=1
 
-                    if abs(grad.sum()) < 1:
+                    if abs(grad.sum()) < 4:
                         # stop from climbing out of min
                         break
-            print(f"Grad sum: {np.sum(grad)}")
 
-
-    np.save(f'/Users/sean/Projects/rl_bart/data/results/policy_V{year}.npy',policy,allow_pickle=True)
-    np.save(f'/Users/sean/Projects/rl_bart/data/results/esvf_V{year}.npy',esvf, allow_pickle=True)
-    np.save(f'/Users/sean/Projects/rl_bart/data/results/theta_V{theta}.npy', theta, allow_pickle=True)
+                print(f"Theta: {theta}")
+    np.save(f'policy_V{year}.npy',policy,allow_pickle=True)
+    np.save(f'esvf_V{year}.npy',esvf, allow_pickle=True)
+    np.save(f'theta_V{year}.npy', theta, allow_pickle=True)
     #np.save(f'/Users/sean/Projects/rl_bart/data/results/gradients_V{year}.npy', gradients, allow_pickle=True)
 
     return theta
