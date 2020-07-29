@@ -34,7 +34,8 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
         theta = np.random.uniform(size=(N_FEAT,))
 
     # keeping track of gradients
-    gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
+    gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,n_iters,N_FEAT))
+    theta_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
     policy = np.zeros((N_STATES, N_ACTIONS))
 
     #for epoch in range(1):
@@ -100,11 +101,14 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                     theta += lr/lr_decay * grad
                     lr_decay+=1
 
+                    gradients[epoch, e, t,iteration, :] = grad
+
                     if abs(grad.sum()) < 4:
                         # stop from climbing out of min
                         break
 
-                gradients[epoch,e,t,:] = grad
+
+                theta_vec[epoch, e, t, :] = theta
 
 
 
