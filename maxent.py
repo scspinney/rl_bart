@@ -21,7 +21,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     """
     N_STATES, N_ACTIONS, _  = np.shape(Tprob)
     N_EXPERTS = len(trajectories)
-    N_TRIALS = N_EXPERTS*30
+    N_TRIALS = 30
     N_FEAT = feature_matrices[0].shape[-1]
 
     #N_STATES-=2
@@ -115,4 +115,42 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     np.save(f'results/gradients_V{year}.npy', gradients, allow_pickle=True)
 
     return theta
+
+def get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories):
+    """
+
+    :param N_EXPERTS:
+    :param N_TRIAL:
+    :param N_STATES:
+    :param N_FEAT:
+    :param trajectories:
+    :return: (average reward for every state float, average save state int)
+
+    """
+
+    rewards = {i:0 for i in range(N_STATES)}
+    svf = np.ones((N_STATES,))
+    save_states=[]
+
+    for traj in trajectories:
+        for b in range(30):
+            for ind, (state, action) in enumerate(traj[b]):
+                #update svf
+                svf[state] +=1
+
+                if ind == len(traj[b])-1:
+                    if action == 0:
+                        rewards[state] += -10*(state-1)
+                    elif action == 1:
+                        save_states.append(state)
+                else:
+                    rewards[state] += 10
+
+    rewards = np.array(list(rewards.values()))
+    avg_rewards = rewards / (N_EXPERTS*N_TRIAL)
+
+    avg_save_state = np.mean(save_states)
+
+    return avg_rewards, avg_save_state
+
 

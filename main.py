@@ -3,6 +3,7 @@ import glob as glob
 import os
 from maxent import *
 from likelihood import *
+from plots import *
 import matplotlib.pyplot as plt
 
 maindir = '/Users/sean/Projects/rl_bart/'
@@ -39,19 +40,38 @@ Tprob = Tprob[:-2,:,:-2]
 trajectories = trajectories[:N]
 feature_matrices = feature_matrices[:N]
 
+N_EXPERTS = len(feature_matrices)
+N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
+N_STATES -= 2
 
-weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=1, trajectories=trajectories, lr=1E-4,lr_decay=lr_decay,n_iters=12,popPoints=popPoints, use_prior=False)
+#weights = maxent_irl(maindir, year, feature_matrices, Tprob, gamma=1, trajectories=trajectories, lr=1E-4,lr_decay=lr_decay,n_iters=100,n_epochs=2,popPoints=popPoints, use_prior=False)
 
 ### likelihood section
 
-#weights = [14.5589288,  -10.91125129, 134.64405279,  -2.04189656,  60.60180254,
- #  5.08663998,  27.57215712,  11.22929793,  58.56049503,  69.74105026,
- # -6.38408481]
+weights=[ 0.5878049,   0.25019523,  0.6986219,  -0.0080535,  0.34347032,  0.67330279,
+            0.69810915,  0.30025994,  0.6172051,   0.51155751, -0.31407854]
 
 
-ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
 
-print(ll)
+#TODO: not working
+obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
+
+
+
+### PLOTTING ###
+
+plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,'line')
+
+# load gradients
+gradients = np.load('results/gradients_V1.npy')
+plot_gradients(gradients)
+
+#ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
+
+#print(ll)
+
+
+
 
 
 
