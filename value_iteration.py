@@ -8,20 +8,7 @@ matthew.alger@anu.edu.au
 import math
 import numpy as np
 from itertools import product
-from numba import njit
-
-
-def softmax(x1, x2):
-    """
-    Soft-maximum calculation, from algorithm 9.2 in Ziebart's PhD thesis.
-    x1: float.
-    x2: float.
-    -> softmax(x1, x2)
-    """
-
-    max_x = max(x1, x2)
-    min_x = min(x1, x2)
-    return max_x + np.log(1 + np.exp(min_x - max_x))
+from numba import jit,njit
 
 
 def compute_state_visition_freq(N_STATES,Tprob,policy):
@@ -116,7 +103,7 @@ def compute_state_visition_freq_jit(N_STATES,Tprob,policy):
 
 
 
-@njit()
+@njit
 def optimal_value_jit(n_states, n_actions, transition_probabilities, reward,
                   discount, threshold=1e-3):
     """
@@ -184,8 +171,8 @@ def optimal_value(n_states, n_actions, transition_probabilities, reward,
     return v
 
 
-@njit
-def find_policy_jit(n_states, r, n_actions, discount,
+
+def find_policy(n_states, r, n_actions, discount,
                            transition_probability,threshold=1e-2):
     """
     Find a policy with linear value iteration. Based on the code accompanying
@@ -212,12 +199,13 @@ def find_policy_jit(n_states, r, n_actions, discount,
         for j in range(n_actions):
             p = transition_probability[i, j, :]
             Q[i, j] = p.dot(r + discount*v)
-    Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+
+    Q -= Q.max(axis=1).reshape((n_states, 1))
     Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
     return Q
 
 
-def find_policy(n_states, r, n_actions, discount,
+def find_policy_jit(n_states, r, n_actions, discount,
                            transition_probability,v=None,stochastic=True,threshold=1e-2):
     """
     Find a policy with linear value iteration. Based on the code accompanying
@@ -233,29 +221,25 @@ def find_policy(n_states, r, n_actions, discount,
         state, with shape (N, A).
     """
 
-    if v is None:
-        v = optimal_value(n_states, n_actions, transition_probability, r,
-                          discount, threshold)
 
+    v = optimal_value_jit(n_states, n_actions, transition_probability, r,
+                      discount, threshold)
 
+    # jit speedup
+    Q = _iterateQ(n_states, r, v,n_actions, discount, transition_probability)
 
-    if stochastic:
-        # Get Q using equation 9.2 from Ziebart's thesis.
-        Q = np.zeros((n_states, n_actions))
-        for i in range(n_states):
-            for j in range(n_actions):
-                p = transition_probability[i, j, :]
-                Q[i, j] = p.dot(r + discount*v)
-        Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
-        Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
-        return Q
+    Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+    Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+    return Q
 
-    # def _policy(s):
-    #     return max(range(n_actions),
-    #                key=lambda a: sum(transition_probability[s, a, k] *
-    #                                  (r[k] + discount * v[k])
-    #                                  for k in range(n_states)))
-    #policy = np.array([_policy(s) for s in range(n_states)])
+@njit
+def _iterateQ(n_states,r,v, n_actions, discount,
+                           transition_probability):
 
-    #return policy
+    Q = np.zeros((n_states, n_actions))
+    for i in range(n_states):
+        for j in range(n_actions):
+            p = transition_probability[i, j, :]
+            Q[i, j] = p.dot(r + discount*v)
 
+    return Q
