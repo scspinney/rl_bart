@@ -21,6 +21,7 @@ gradients = np.load(f'results/gradients_V{year}.npy')
 weights = np.load(f'results/theta_V{year}.npy')
 
 # pass the average weights over the 30 trajectories, over the N experts
+weights = weights.mean(axis=1).mean(axis=1).reshape(-1)
 
 obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
 
