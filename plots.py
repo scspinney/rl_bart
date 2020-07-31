@@ -27,7 +27,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     sns.set(style="darkgrid")
     out_name = f'results/reward_landscape-{str(datetime.date.today())}.npy'
 
-    if not os.path.exists(out_name) and not clobber :
+    if not os.path.exists(out_name) or clobber :
 
         contrast = np.ones((N_FEAT,))
         rewards=np.zeros((N_TRIAL,N_EXPERTS,N_STATES))
