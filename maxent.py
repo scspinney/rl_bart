@@ -103,8 +103,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 theta_vec[epoch, e, t, :] = theta
 
 
-
-                #print(f"Theta: {theta}")
+    print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete. Saving policy, esvf, weights, and gradients in results.")
     np.save(f'results/policy_V{year}.npy',policy,allow_pickle=True)
     np.save(f'results/esvf_V{year}.npy',esvf, allow_pickle=True)
     np.save(f'results/theta_V{year}.npy', theta_vec, allow_pickle=True)
