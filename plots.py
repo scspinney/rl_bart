@@ -29,14 +29,13 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
 
     if not os.path.exists(out_name):
 
-        contrast = np.ones((N_FEAT-1,))
-        #contrast[10] = -1
+        contrast = np.ones((N_FEAT,))
         rewards=np.zeros((N_TRIAL,N_EXPERTS,N_STATES))
 
         # retrieve reward landscape
         for t in range(N_TRIAL):
             for e in range(N_EXPERTS):
-                fmat = feature_matrices[e][t][:-2,:-1]
+                fmat = feature_matrices[e][t][:-2]
                 rewards[t,e,:] = np.dot(np.multiply(contrast,fmat), weights)
 
         np.save(out_name, rewards, allow_pickle=True)
@@ -61,8 +60,8 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     pos_thres = max(rewards.state[(rewards.reward > 0) & (rewards.balloon == 29)])
     if kind == 'line':
 
-        plt.figure(dpi=1200)
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(40, 40),dpi=1200)
+
         ax = sns.relplot(x="state",
                   y="exp_pred_reward",
                   hue="balloon",
@@ -70,20 +69,22 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
                   data=rewards,
                   facet_kws={"legend_out": False})
 
-        plt.plot(x,obs_exp_rewards,color='g',label="Observed Average Reward")
-        plt.plot(x,expected_rewards,color='pink',label="Expected reward")
+        ax.ax.plot(x,obs_exp_rewards,color='green',label="Observed Average Reward")
+        ax.ax.plot(x,expected_rewards,color='pink',label="Expected reward")
+        #plt.plot(x,obs_exp_rewards,style='--',label="Observed Average Reward")
+        #plt.plot(x,expected_rewards,color='pink',label="Expected reward")
 
 
         # add red line at positive threshold
-        ax.ax.axvline(pos_thres, color='red')
-        ax.ax.axvline(avg_save_state, color='blue')
+        ax.ax.axvline(pos_thres, color='red', alpha=0.2)
+        ax.ax.axvline(avg_save_state, color='blue', alpha=0.2)
 
         # add xtick at that pos thresh
         #x_ticks = np.append(ax.ax.get_xticks(), (pos_thres,avg_save_state))
         #x_ticks = x_ticks[1:]
 
-        plt.annotate(f"{int(pos_thres)}",xy=(pos_thres-7,-30),color='r',size=8)
-        plt.annotate(f"{int(avg_save_state)}", xy=(avg_save_state + 2, -30), color='b', size=8)
+        ax.ax.annotate(f"{int(pos_thres)}",xy=(pos_thres+3,-20),color='r',size=8)
+        ax.ax.annotate(f"{int(avg_save_state)}", xy=(avg_save_state - 8, -20), color='b', size=8)
 
         # Set xtick locations to the values of the array `x_ticks`
         #ax.ax.set_xticks(x_ticks)
@@ -96,73 +97,66 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         plt.xlabel("States")
         plt.ylabel("Reward")
         plt.tight_layout()
+        plt.legend(loc='upper right', fontsize = 'xx-small')
         plt.savefig(f'results/reward_landscape{str(datetime.date.today())}.png')
-
         plt.show()
-
-
-
 
 
 def plot_gradients(gradients):
 
 
     #TODO: hard coded fix but rerun with proper gradient sizing
-    gradients = gradients[:,:,:30,:]
+    avg_grads = gradients.mean(axis=1)
 
-    grad_epoch1 = gradients[0]
-    grad_epoch1 = grad_epoch1.reshape(-1, grad_epoch1.shape[-1])
-    grad_epoch2 = gradients[1]
-    grad_epoch2 = grad_epoch2.reshape(-1, grad_epoch2.shape[-1])
-    grad_epochs = np.concatenate((grad_epoch1,grad_epoch2),axis=0)
-    gdf = pd.DataFrame(grad_epochs)
+    N_EPOCHS, N_TRIALS, N_ITER, N_FEAT = np.shape(avg_grads)
 
-    #gdf = pd.DataFrame(np.concatenate((grad_epoch1,grad_epoch2)).reshape(-1,gradients.shape[-1]))
-    gdf['epoch'] = pd.Series(np.repeat(np.array([1,2]), [grad_epoch1.shape[0],grad_epoch2.shape[0]]))
-    #gdf = pd.DataFrame(gradients.reshape(-1, gradients.shape[-1]))
-    gdf.reset_index(inplace=True)
-    gdf.rename({'index':'iterations'},axis=1,inplace=True)
+    gdict = {'epoch':[],
+             'balloon':[],
+             'iteration':[],
+             'feature':[],
+             'gradient':[]}
 
+    for epoch in range(N_EPOCHS):
+        for b in range(N_TRIALS):
+            for iter in range(N_ITER):
+                for f in range(N_FEAT):
+                    gdict['epoch'].append(epoch)
+                    gdict['balloon'].append(b)
+                    gdict['iteration'].append(iter)
+                    gdict['feature'].append(f)
+                    gdict['gradient'].append(avg_grads[epoch,b,iter,f])
+
+    gdf = pd.DataFrame().from_dict(gdict)
 
     # Initialize the figure
     plt.style.use('seaborn-darkgrid')
 
-    # create a color palette
-    palette = plt.get_cmap('Set1')
+    fig, axs = plt.subplots(N_EPOCHS, N_FEAT, figsize=(100,40), sharex=True, sharey=False)
 
-    # multiple line plot
-    plt.figure(dpi=1200)
-    plt.figure(figsize=(40,40))
-    # general title
-    plt.suptitle("Gradients of feature weights", fontsize=13, color='black', y=1.02)
+    colors = plt.cm.coolwarm(np.linspace(0, 1, N_TRIALS))
+    line_labels = [i+1 for i in range(N_TRIALS)]
+    for e in range(N_EPOCHS):
+        for f in range(N_FEAT):
+            num = N_FEAT*e+f + 1
+            f_gdf = gdf[(gdf['feature'] == f) & (gdf['epoch'] == e)]
 
-    num = 0
-    for column in gdf.drop(['iterations','epoch'], axis=1):
-        num += 1
+            for i, (name, group) in enumerate(f_gdf.groupby("balloon")):
+                axs[e,f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
 
-        # Find the right spot on the plot
-        plt.subplot(3, 4, num)
+            axs[e,f].set_title(f"Epoch: {e}, Feature: {f}")
 
-        # Plot the lineplot
-        sns.lineplot(data=gdf, x='iterations',y=gdf[column], hue='epoch')
-        #plt.plot(gdf['iterations'], gdf[column], marker='', color=palette(num), linewidth=1.4, alpha=0.7, label=column)
+            # Not ticks everywhere
+            if num in range(N_FEAT):
+                axs[e,f].tick_params(labelbottom='off')
+            if num not in [1, N_FEAT+1]:
+                axs[e,f].tick_params(labelleft='off')
+            axs[e,f].tick_params(labelsize='small')
 
-        #increase tick size
-
-
-
-        # Not ticks everywhere
-        if num in range(9):
-            plt.tick_params(labelbottom='off')
-        if num not in [1, 5, 9]:
-            plt.tick_params(labelleft='off')
-        plt.tick_params(labelsize='large')
-
-        # Add title
-        plt.title(f'Feature: {column}', loc='center', fontsize=24, fontweight=1)
+            if e == 0 and f == 10:
+                axs[e,f].legend()
 
 
 
-    plt.tight_layout()
+    fig.tight_layout()
     plt.savefig(f'results/gradients{str(datetime.date.today())}.svg')
     plt.show()
