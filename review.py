@@ -6,7 +6,7 @@ import numpy as np
 
 maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
 year=2
-N=148
+N=138
 
 
 ## Load data
@@ -20,6 +20,7 @@ N_STATES -= 2
 gradients = np.load(f'results/gradients_V{year}.npy')
 weights = np.load(f'results/theta_V{year}.npy')
 
+# pass the average weights over the 30 trajectories, over the N experts
 
 obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
 
@@ -29,6 +30,8 @@ plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices
 
 plot_gradients(gradients)
 
-ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
+
+
+#ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
 
 
