@@ -115,7 +115,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 print(f"Theta: {theta}")
     np.save(f'results/policy_V{year}.npy',policy,allow_pickle=True)
     np.save(f'results/esvf_V{year}.npy',esvf, allow_pickle=True)
-    np.save(f'results/theta_V{year}.npy', theta, allow_pickle=True)
+    np.save(f'results/theta_V{year}.npy', theta_vec, allow_pickle=True)
     np.save(f'results/gradients_V{year}.npy', gradients, allow_pickle=True)
 
     return theta
