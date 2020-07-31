@@ -21,13 +21,13 @@ def plot_weights(weights):
     plt.show()
 
 
-def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,kind='line'):
+def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,kind='line',clobber=True):
 
 
     sns.set(style="darkgrid")
     out_name = f'results/reward_landscape-{str(datetime.date.today())}.npy'
 
-    if not os.path.exists(out_name):
+    if not os.path.exists(out_name) and not clobber :
 
         contrast = np.ones((N_FEAT,))
         rewards=np.zeros((N_TRIAL,N_EXPERTS,N_STATES))
