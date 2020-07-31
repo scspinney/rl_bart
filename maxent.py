@@ -4,7 +4,7 @@ from value_iteration import *
 
 
 
-def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,popPoints,use_prior=False):
+def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,shuffle_training=True,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -38,66 +38,55 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     theta_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
     policy = np.zeros((N_STATES, N_ACTIONS))
 
-    #for epoch in range(1):
-    for epoch in range(round(n_epochs)):
+    for epoch in range(n_epochs):
 
         print(f"Progress {epoch/round(n_iters)}\% completed.")
         print(f"Theta: {theta}")
+
         for e in range(N_EXPERTS):
 
-            #print(f"Theta for expert {e} on {N_EXPERTS}: {theta}")
             all_expert_trajs = trajectories[e]
 
-            ## shuffle trajectories
-            #ind = np.random.permutation(range(len(all_expert_trajs)))
-            #all_expert_trajs = all_expert_trajs[ind]
-            #feature_matrix = feature_matrices[e][ind]
-            feature_matrix = feature_matrices[e]
+            # shuffle trajectories by default
+            if shuffle_training:
+
+                ind = np.random.permutation(range(len(all_expert_trajs)))
+                all_expert_trajs = all_expert_trajs[ind]
+                feature_matrix = feature_matrices[e][ind]
+
+            else:
+                feature_matrix = feature_matrices[e]
 
             for t,trajectory in enumerate(all_expert_trajs):
                 print(f"-------------------- NEW TRAJECTORY NUMBER {t} --------------------------")
 
                 curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
 
-
-                # calc feature expectations
                 feat_exp = np.zeros([N_FEAT])
-                #svf = np.zeros(N_STATES)
 
                 for state, _ in trajectory:
                    feat_exp += curr_fmat[state]
 
-                #feat_exp /= N_TRIALS
 
                 # optimization
                 lr_decay = 1
-                #while True:
-                #for iteration in range(round(n_iters)):
+
                 for iteration in range(n_iters):
 
-                    #if iteration % (n_iters / 20) == 0:
-                     #   print(f"Epoch {epoch}, iteration: {iteration/round(n_iters / 2)} completed.")
-
-                    # compute expected reward for summarized feature matrix for every state
+                    # compute expected reward for feature matrix
                     rewards = np.dot(curr_fmat, theta)
 
-                    #_, policy = optimal_policy(Tprob, rewards, gamma, error=0.1)
-                    policy = find_policy(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
-                    #print(f"Policy: {policy}")
+                    # generate policy
+                    policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
 
-                    # compute expected state visitation frequencies
-
-                    esvf = compute_state_visition_freq(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy)
-                    #print(f"SVF: {svf}")
+                    # get ESVF
+                    esvf = compute_state_visition_freq_jit(N_STATES,Tprob,policy)
 
                     # compute gradients
                     grad = feat_exp - esvf.dot(curr_fmat)
-
-
-                    #gradients[iteration,] = gradgit
                     print(f"Grad sum: {np.sum(grad)}")
 
-                    # update params
+                    # update weights
                     theta += lr/lr_decay * grad
                     lr_decay+=1
 
