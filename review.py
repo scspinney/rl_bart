@@ -4,9 +4,9 @@ from likelihood import likelihood
 from plots import *
 import numpy as np
 
-maindir = '/Users/sean/Projects/rl_bart'
+maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
 year=2
-N=138
+N=10
 
 
 ## Load data
@@ -27,7 +27,7 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 
 ### PLOTTING ###
 
-#plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
+plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
 
 plot_gradients(gradients)
 

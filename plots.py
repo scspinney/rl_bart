@@ -141,28 +141,28 @@ def plot_gradients(gradients):
             f_gdf = gdf[(gdf['feature'] == f) & (gdf['epoch'] == e)]
 
             for i, (name, group) in enumerate(f_gdf.groupby("balloon")):
-                #axs[e,f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
-                axs[f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
+                axs[e,f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
+                #axs[f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
 
-            #axs[e,f].set_title(f"Epoch: {e}, Feature: {f}")
-            axs[f].set_title(f"Epoch: {e}, Feature: {f}")
+            axs[e,f].set_title(f"Epoch: {e}, Feature: {f}")
+            #axs[f].set_title(f"Epoch: {e}, Feature: {f}")
 
             # Not ticks everywhere
             if num in range(N_FEAT):
-                #axs[e,f].tick_params(labelbottom='off')
-                axs[f].tick_params(labelbottom='off')
+                axs[e,f].tick_params(labelbottom='off')
+                #axs[f].tick_params(labelbottom='off')
             if num not in [1, N_FEAT+1]:
-                #axs[e,f].tick_params(labelleft='off')
-                axs[f].tick_params(labelleft='off')
-            #axs[e,f].tick_params(labelsize='small')
-            axs[f].tick_params(labelsize='small')
+                axs[e,f].tick_params(labelleft='off')
+                #axs[f].tick_params(labelleft='off')
+            axs[e,f].tick_params(labelsize='small')
+            #axs[f].tick_params(labelsize='small')
 
             if e == 0 and f == 10:
-                #axs[e,f].legend()
-                axs[f].legend()
+                axs[e,f].legend()
+                #axs[f].legend()
 
 
 
     fig.tight_layout()
-    plt.savefig(f'results/gradients{str(datetime.date.today())}.svg')
+    plt.savefig(f'results/gradients{str(datetime.date.today())}.png')
     plt.show()

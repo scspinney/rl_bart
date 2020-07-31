@@ -37,10 +37,9 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,n_iters,N_FEAT))
     theta_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
     policy = np.zeros((N_STATES, N_ACTIONS))
-
+    counter=1
     for epoch in range(n_epochs):
 
-        print(f"Progress {epoch/round(n_iters)}\% completed.")
         print(f"Theta: {theta}")
 
         for e in range(N_EXPERTS):
@@ -58,7 +57,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                 feature_matrix = feature_matrices[e]
 
             for t,trajectory in enumerate(all_expert_trajs):
-                print(f"-------------------- NEW TRAJECTORY NUMBER {t} --------------------------")
+                #print(f"-------------------- NEW TRAJECTORY NUMBER {t} --------------------------")
 
                 curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
 
@@ -84,13 +83,17 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
                     # compute gradients
                     grad = feat_exp - esvf.dot(curr_fmat)
-                    print(f"Grad sum: {np.sum(grad)}")
+                    #if iteration % 100 == 0: print(f"Grad sum: {np.sum(grad)}")
 
                     # update weights
                     theta += lr/lr_decay * grad
                     lr_decay+=1
 
                     gradients[epoch, e, t,iteration, :] = grad
+                    
+                    if counter % 500 == 0:
+                        print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete...")
+                    counter+=1
 
                     if abs(grad.sum()) < 4:
                         # stop from climbing out of min
@@ -101,7 +104,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
 
 
-                print(f"Theta: {theta}")
+                #print(f"Theta: {theta}")
     np.save(f'results/policy_V{year}.npy',policy,allow_pickle=True)
     np.save(f'results/esvf_V{year}.npy',esvf, allow_pickle=True)
     np.save(f'results/theta_V{year}.npy', theta_vec, allow_pickle=True)
