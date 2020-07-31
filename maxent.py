@@ -80,7 +80,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                     policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
 
                     # get ESVF
-                    esvf = compute_state_visition_freq_jit(N_STATES,N_ACTIONS,Tprob, gamma, trajectory, policy)
+                    esvf = compute_state_visition_freq_jit(N_STATES,Tprob,policy)
 
                     # compute gradients
                     grad = feat_exp - esvf.dot(curr_fmat)
