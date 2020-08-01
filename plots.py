@@ -37,11 +37,12 @@ def plot_weights(weights):
 
     sns.catplot(x="feature", y="weight",
                 hue="expert", col="epoch",
-                data=wdf, kind="bar",facet_kws={"legend_out": False})
+                data=wdf, kind="bar",
+                legend_out= False,
+                legend=False)
 
     plt.tight_layout()
-    plt.legend(loc='upper right', fontsize='xx-small')
-
+    #plt.legend(loc='upper right', fontsize='xx-small')
     plt.savefig(f'results/weights{str(datetime.date.today())}.png')
     plt.show()
 
