@@ -8,17 +8,44 @@ import os
 
 def plot_weights(weights):
 
-    df = pd.DataFrame({'weights': weights})
-    df['positive'] = df['weights'] > 0
-    df['features'] = range(1, 13)
-    df.set_index("features", drop=True, inplace=True)
+    N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
-    df['weights'].plot(x='features',
-                       kind='bar',
-                       color=df.positive.map({True: 'g', False: 'r'}))
+    wdict = {'epoch':[],
+             'balloon':[],
+             'expert':[],
+             'feature':[],
+             'weight':[]}
+
+    for epoch in range(N_EPOCHS):
+        for e in range(N_EXPERTS):
+            for b in range(N_TRIALS):
+                for f in range(N_FEAT):
+                    wdict['epoch'].append(epoch)
+                    wdict['balloon'].append(b)
+                    wdict['expert'].append(e)
+                    wdict['feature'].append(f)
+                    wdict['weight'].append(weights[epoch,e,b,f])
+
+    wdf = pd.DataFrame().from_dict(wdict)
+
+    # Initialize the figure
+    plt.style.use('seaborn-darkgrid')
+    plt.figure(figsize=(80, 40), dpi=1200)
+
+    #g=sns.FacetGrid(data=wdf,row="epoch",col="feature")
+    #g.map(sns.lineplot,x="expert",y="weight",data=wdf)
+
+    sns.catplot(x="feature", y="weight",
+                hue="expert", col="epoch",
+                data=wdf, kind="bar",facet_kws={"legend_out": False})
+
+    plt.tight_layout()
+    plt.legend(loc='upper right', fontsize='xx-small')
 
     plt.savefig(f'results/weights{str(datetime.date.today())}.png')
     plt.show()
+
+
 
 
 def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,kind='line',clobber=True):
@@ -27,7 +54,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     sns.set(style="darkgrid")
     out_name = f'results/reward_landscape-{str(datetime.date.today())}.npy'
 
-    if not os.path.exists(out_name) and not clobber :
+    if not os.path.exists(out_name) or clobber :
 
         contrast = np.ones((N_FEAT,))
         rewards=np.zeros((N_TRIAL,N_EXPERTS,N_STATES))
