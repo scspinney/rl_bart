@@ -4,7 +4,7 @@ from likelihood import likelihood
 from plots import *
 import numpy as np
 
-maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
+maindir = '/Users/sean/Projects/rl_bart'
 year=2
 N=10
 
@@ -21,17 +21,15 @@ gradients = np.load(f'results/gradients_V{year}.npy')
 weights = np.load(f'results/theta_V{year}.npy')
 
 # pass the average weights over the 30 trajectories, over the N experts
-weights = weights.mean(axis=1).mean(axis=1).reshape(-1)
+avg_weights = weights.mean(axis=1).mean(axis=1)[-1]
 
-obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
+#obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
 
 ### PLOTTING ###
 
-plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
-
-plot_gradients(gradients)
-
-
+#plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
+#plot_gradients(gradients)
+plot_weights(weights)
 
 #ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
 
