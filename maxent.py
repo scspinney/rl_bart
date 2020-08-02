@@ -87,7 +87,7 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
                     # update weights
                     theta += lr/lr_decay * grad
-                    lr_decay+=1
+                    #lr_decay+=1
 
                     gradients[epoch, e, t,iteration, :] = grad
                     

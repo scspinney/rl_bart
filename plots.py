@@ -88,7 +88,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     pos_thres = max(rewards.state[(rewards.reward > 0) & (rewards.balloon == 29)])
     if kind == 'line':
 
-        plt.figure(figsize=(40, 40),dpi=1200)
+        plt.figure(figsize=(100, 60),dpi=1200)
 
         ax = sns.relplot(x="state",
                   y="exp_pred_reward",
@@ -118,7 +118,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         #ax.ax.set_xticks(x_ticks)
         plt.xticks(fontsize=7,rotation=45)
 
-        plt.title(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.")
+        plt.suptitle(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.")
         txt = "Red vline indicates largest pump number (state) with positive reward. Blue vline is the average save state"
         plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=7)
 
@@ -159,7 +159,7 @@ def plot_gradients(gradients):
     # Initialize the figure
     plt.style.use('seaborn-darkgrid')
 
-    fig, axs = plt.subplots(N_EPOCHS, N_FEAT, figsize=(100,40), sharex=True, sharey=False)
+    fig, axs = plt.subplots(N_EPOCHS+1, N_FEAT, figsize=(100,40), sharex=True, sharey=False)
 
     colors = plt.cm.coolwarm(np.linspace(0, 1, N_TRIALS))
     line_labels = [i+1 for i in range(N_TRIALS)]
