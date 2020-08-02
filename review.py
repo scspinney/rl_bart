@@ -4,9 +4,11 @@ from likelihood import likelihood
 from plots import *
 import numpy as np
 
+np.set_printoptions(suppress=True)
+
 maindir = '/Users/sean/Projects/rl_bart'
 year=2
-N=10
+N=138
 
 
 ## Load data
@@ -23,14 +25,16 @@ weights = np.load(f'results/theta_V{year}.npy')
 # pass the average weights over the 30 trajectories, over the N experts
 avg_weights = weights.mean(axis=1).mean(axis=1)[-1]
 
-#obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
+obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
 
 ### PLOTTING ###
 
 #plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
 #plot_gradients(gradients)
-plot_weights(weights)
+#plot_weights(weights)
 
-#ll = likelihood(trajectories, feature_matrices, weights, discount=1, Tprob=Tprob)
+avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
+
+print(f"Average Log Likelihood on training demonstrations: N = {N_EXPERTS*N_TRIAL} demonstrations, LL = {avg_LL}")
 
 
