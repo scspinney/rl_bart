@@ -72,6 +72,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
 
     x = np.arange(1,129)
 
+    avg_pred_reward = rewards.mean(axis=1).mean(axis=0)
     rewards = pd.DataFrame(rewards.mean(axis=1))
 
     # add balloon number identifier
@@ -88,7 +89,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     pos_thres = max(rewards.state[(rewards.reward > 0) & (rewards.balloon == 29)])
     if kind == 'line':
 
-        plt.figure(figsize=(100, 60),dpi=1200)
+        plt.figure(figsize=(60, 40),dpi=900)
 
         ax = sns.relplot(x="state",
                   y="exp_pred_reward",
@@ -97,7 +98,8 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
                   data=rewards,
                   facet_kws={"legend_out": False})
 
-        ax.ax.plot(x,obs_exp_rewards,color='green',label="Observed Average Reward")
+        ax.ax.plot(x,obs_exp_rewards,color='green',label="Observed average reward")
+        ax.ax.plot(x, avg_pred_reward, color='blue', label="Average predicted reward")
         ax.ax.plot(x,expected_rewards,color='pink',label="Expected reward")
         #plt.plot(x,obs_exp_rewards,style='--',label="Observed Average Reward")
         #plt.plot(x,expected_rewards,color='pink',label="Expected reward")
@@ -118,7 +120,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         #ax.ax.set_xticks(x_ticks)
         plt.xticks(fontsize=7,rotation=45)
 
-        plt.suptitle(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.")
+        plt.suptitle(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.",fontsize=8)
         txt = "Red vline indicates largest pump number (state) with positive reward. Blue vline is the average save state"
         plt.figtext(0.5, 0.01, txt, wrap=True, horizontalalignment='center', fontsize=7)
 
