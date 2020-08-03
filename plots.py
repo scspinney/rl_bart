@@ -10,36 +10,45 @@ def plot_weights(weights,kind='line'):
 
     N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
-    wdict = {'epoch':[],
+    avg_weights = weights.mean(axis=1)
+
+    wdict1 = {'epoch':[],
              'balloon':[],
              'expert':[],
              'feature':[],
              'weight':[]}
 
-    for epoch in range(N_EPOCHS):
-        for e in range(N_EXPERTS):
-            for b in range(N_TRIALS):
-                for f in range(N_FEAT):
-                    wdict['epoch'].append(epoch)
-                    wdict['balloon'].append(b)
-                    wdict['expert'].append(e)
-                    wdict['feature'].append(f)
-                    wdict['weight'].append(weights[epoch,e,b,f])
+    wdict2 = {'epoch':[],
+             'balloon':[],
+             'feature':[],
+             'weight':[]}
 
-    wdf = pd.DataFrame().from_dict(wdict)
+    for epoch in range(N_EPOCHS):
+        for b in range(N_TRIALS):
+            for f in range(N_FEAT):
+                wdict2['epoch'].append(epoch)
+                wdict2['balloon'].append(b)
+                wdict2['feature'].append(f)
+                wdict2['weight'].append(avg_weights[epoch, b, f])
+                for e in range(N_EXPERTS):
+                    wdict1['epoch'].append(epoch)
+                    wdict1['balloon'].append(b)
+                    wdict1['expert'].append(e)
+                    wdict1['feature'].append(f)
+                    wdict1['weight'].append(weights[epoch,e,b,f])
+
+    wdf1 = pd.DataFrame().from_dict(wdict1)
+    wdf2 = pd.DataFrame().from_dict(wdict2)
 
     # Initialize the figure
     plt.style.use('seaborn-darkgrid')
     plt.figure(figsize=(80, 40), dpi=1200)
 
-    #g=sns.FacetGrid(data=wdf,row="epoch",col="feature")
-    #g.map(sns.lineplot,x="expert",y="weight",data=wdf)
-
     if kind == 'bar':
 
         sns.catplot(x="feature", y="weight",
                     hue="expert", col="epoch",
-                    data=wdf, kind="bar",
+                    data=wdf1, kind="bar",
                     legend_out= False,
                     legend=False)
 
@@ -52,10 +61,9 @@ def plot_weights(weights,kind='line'):
                     hue="balloon", col="feature",
                     #height=5, aspect=.75,
                     facet_kws=dict(sharex=False),
-                    kind="line", legend="full", data=wdf)
+                    kind="line", legend="full", data=wdf2)
 
     plt.tight_layout()
-    #plt.legend(loc='upper right', fontsize='xx-small')
     plt.savefig(f'results/weights{str(datetime.date.today())}.png')
     plt.show()
 
