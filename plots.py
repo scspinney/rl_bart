@@ -6,7 +6,7 @@ import datetime
 import os
 
 
-def plot_weights(weights):
+def plot_weights(weights,kind='line'):
 
     N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
@@ -35,11 +35,24 @@ def plot_weights(weights):
     #g=sns.FacetGrid(data=wdf,row="epoch",col="feature")
     #g.map(sns.lineplot,x="expert",y="weight",data=wdf)
 
-    sns.catplot(x="feature", y="weight",
-                hue="expert", col="epoch",
-                data=wdf, kind="bar",
-                legend_out= False,
-                legend=False)
+    if kind == 'bar':
+
+        sns.catplot(x="feature", y="weight",
+                    hue="expert", col="epoch",
+                    data=wdf, kind="bar",
+                    legend_out= False,
+                    legend=False)
+
+    elif kind == 'line':
+        # g = sns.FacetGrid(data=wdf, col="feature", hue="balloon")
+        # g.map(sns.pointplot, "epoch", "weight")
+
+        # Plot the lines on two facets
+        sns.relplot(x="epoch", y="weight",
+                    hue="balloon", col="feature",
+                    #height=5, aspect=.75,
+                    facet_kws=dict(sharex=False),
+                    kind="line", legend="full", data=wdf)
 
     plt.tight_layout()
     #plt.legend(loc='upper right', fontsize='xx-small')
