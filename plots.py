@@ -10,7 +10,8 @@ def plot_weights(weights,kind='line'):
 
     N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
-    avg_weights = weights.mean(axis=1)
+    avg_weights_e = weights.mean(axis=1)
+    avg_weights_b = weights.mean(axis=2)
 
     wdict1 = {'epoch':[],
              'balloon':[],
@@ -23,13 +24,18 @@ def plot_weights(weights,kind='line'):
              'feature':[],
              'weight':[]}
 
+    wdict3 = {'epoch':[],
+             'expert':[],
+             'feature':[],
+             'weight':[]}
+
     for epoch in range(N_EPOCHS):
         for b in range(N_TRIALS):
             for f in range(N_FEAT):
                 wdict2['epoch'].append(epoch)
                 wdict2['balloon'].append(b)
                 wdict2['feature'].append(f)
-                wdict2['weight'].append(avg_weights[epoch, b, f])
+                wdict2['weight'].append(avg_weights_e[epoch, b, f])
                 for e in range(N_EXPERTS):
                     wdict1['epoch'].append(epoch)
                     wdict1['balloon'].append(b)
@@ -37,8 +43,14 @@ def plot_weights(weights,kind='line'):
                     wdict1['feature'].append(f)
                     wdict1['weight'].append(weights[epoch,e,b,f])
 
+                    wdict3['epoch'].append(epoch)
+                    wdict3['expert'].append(e)
+                    wdict3['feature'].append(f)
+                    wdict3['weight'].append(avg_weights_b[epoch,e,f])
+
     wdf1 = pd.DataFrame().from_dict(wdict1)
     wdf2 = pd.DataFrame().from_dict(wdict2)
+    wdf3 = pd.DataFrame().from_dict(wdict3)
 
     # Initialize the figure
     plt.style.use('seaborn-darkgrid')
@@ -61,7 +73,13 @@ def plot_weights(weights,kind='line'):
                     hue="balloon", col="feature",
                     #height=5, aspect=.75,
                     facet_kws=dict(sharey=False),
-                    kind="line", legend="brief", data=wdf2)
+                    kind="line", legend="brief", legend_out=True,data=wdf2)
+
+        sns.relplot(x="epoch", y="weight",
+                    hue="expert", col="feature",
+                    #height=5, aspect=.75,
+                    facet_kws=dict(sharey=False),
+                    kind="line", legend="brief", legend_out=True,data=wdf3)
 
     plt.suptitle(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.", fontsize=8)
     plt.xlabel("States")
