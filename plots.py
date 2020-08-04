@@ -8,6 +8,11 @@ import os
 
 def plot_weights(weights,kind='line'):
 
+
+    out_d1 = f'results/weightdf1{str(datetime.date.today())}.csv'
+    out_d2 = f'results/weightdf2{str(datetime.date.today())}.csv'
+    out_d3 = f'results/weightdf3{str(datetime.date.today())}.csv'
+
     N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
     avg_weights_e = weights.mean(axis=1)
@@ -29,51 +34,64 @@ def plot_weights(weights,kind='line'):
              'feature':[],
              'weight':[]}
 
-    for epoch in range(N_EPOCHS):
-        for b in range(N_TRIALS):
+    if any(not os.path.exists(p) for p in [out_d1,out_d2,out_d2]):
+
+        for epoch in range(0,N_EPOCHS,20):
             for f in range(N_FEAT):
-                wdict2['epoch'].append(epoch)
-                wdict2['balloon'].append(b)
-                wdict2['feature'].append(f)
-                wdict2['weight'].append(avg_weights_e[epoch, b, f])
                 for e in range(N_EXPERTS):
-                    wdict1['epoch'].append(epoch)
-                    wdict1['balloon'].append(b)
-                    wdict1['expert'].append(e)
-                    wdict1['feature'].append(f)
-                    wdict1['weight'].append(weights[epoch,e,b,f])
 
                     wdict3['epoch'].append(epoch)
                     wdict3['expert'].append(e)
                     wdict3['feature'].append(f)
-                    wdict3['weight'].append(avg_weights_b[epoch,e,f])
+                    wdict3['weight'].append(avg_weights_b[epoch, e, f])
+                    # for b in range(N_TRIALS):
+                    #
+                    #     wdict1['epoch'].append(epoch)
+                    #     wdict1['balloon'].append(b)
+                    #     wdict1['expert'].append(e)
+                    #     wdict1['feature'].append(f)
+                    #     wdict1['weight'].append(weights[epoch,e,b,f])
+                    #
+                    #     wdict2['epoch'].append(epoch)
+                    #     wdict2['balloon'].append(b)
+                    #     wdict2['feature'].append(f)
+                    #     wdict2['weight'].append(avg_weights_e[epoch, b, f])
 
-    wdf1 = pd.DataFrame().from_dict(wdict1)
-    wdf2 = pd.DataFrame().from_dict(wdict2)
-    wdf3 = pd.DataFrame().from_dict(wdict3)
 
-    # Initialize the figure
+        #wdf1 = pd.DataFrame().from_dict(wdict1)
+        #wdf2 = pd.DataFrame().from_dict(wdict2)
+        wdf3 = pd.DataFrame().from_dict(wdict3)
+
+        # save
+        wdf3.to_csv(out_d3)
+
+    else:
+        #wdf1 = pd.read_csv(out_d1)
+        #wdf2 = pd.read_csv(out_d2)
+        wdf3 = pd.read_csv(out_d3)
+
+        # Initialize the figure
     plt.style.use('seaborn-darkgrid')
     plt.figure(figsize=(80, 40), dpi=1200)
 
     if kind == 'bar':
-
-        sns.catplot(x="feature", y="weight",
-                    hue="expert", col="epoch",
-                    data=wdf1, kind="bar",
-                    legend_out= False,
-                    legend=False)
+        pass
+        # sns.catplot(x="feature", y="weight",
+        #             hue="expert", col="epoch",
+        #             data=wdf1, kind="bar",
+        #             legend_out= False,
+        #             legend=False)
 
     elif kind == 'line':
         # g = sns.FacetGrid(data=wdf, col="feature", hue="balloon")
         # g.map(sns.pointplot, "epoch", "weight")
 
         # Plot the lines on two facets
-        sns.relplot(x="epoch", y="weight",
-                    hue="balloon", col="feature",
-                    #height=5, aspect=.75,
-                    facet_kws=dict(sharey=False),
-                    kind="line", legend="brief", legend_out=True,data=wdf2)
+        # sns.relplot(x="epoch", y="weight",
+        #             hue="balloon", col="feature",
+        #             #height=5, aspect=.75,
+        #             facet_kws=dict(sharey=False),
+        #             kind="line", legend="brief", legend_out=True,data=wdf2)
 
         sns.relplot(x="epoch", y="weight",
                     hue="expert", col="feature",
