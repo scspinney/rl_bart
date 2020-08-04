@@ -138,6 +138,8 @@ def get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories):
                         rewards[state] += -10*(state-1)
                     elif action == 1:
                         save_states.append(state)
+                        #TODO: Artifical value increase at saving
+                        rewards[state] += 200
                 else:
                     rewards[state] += 10
 
@@ -149,3 +151,11 @@ def get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories):
     return avg_rewards, avg_save_state
 
 
+def get_svf(N_STATES,trajectory):
+
+    svf = np.zeros((N_STATES,))
+
+    for state,action in trajectory:
+        svf[state]+=1
+
+    return svf
