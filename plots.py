@@ -99,14 +99,6 @@ def plot_weights(weights,kind='line'):
                     facet_kws=dict(sharey=False),
                     kind="line", legend="brief", legend_out=True,data=wdf3)
 
-    plt.suptitle(f"Reward distribution over states, averaged across the {N_EXPERTS} experts.", fontsize=8)
-    plt.xlabel("States")
-    plt.ylabel("Reward")
-    plt.tight_layout()
-    plt.legend(loc='upper right', fontsize='xx-small')
-    plt.savefig(f'results/reward_landscape{str(datetime.date.today())}.png')
-    plt.show()
-
     plt.tight_layout()
     plt.savefig(f'results/weights{str(datetime.date.today())}.png')
     plt.show()
