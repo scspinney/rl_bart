@@ -41,11 +41,10 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     for epoch in range(n_epochs):
 
         print(f"Theta: {theta}")
-
+        lr_decay+=1
         for e in range(N_EXPERTS):
 
             all_expert_trajs = trajectories[e]
-
             # shuffle trajectories by default
             if shuffle_training:
 
@@ -67,9 +66,6 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
                    feat_exp += curr_fmat[state]
 
 
-                # optimization
-                lr_decay = 1
-
                 for iteration in range(n_iters):
 
                     # compute expected reward for feature matrix
@@ -87,7 +83,6 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
                     # update weights
                     theta += lr/lr_decay * grad
-                    #lr_decay+=1
 
                     gradients[epoch, e, t,iteration, :] = grad
                     
