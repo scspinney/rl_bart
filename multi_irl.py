@@ -2,6 +2,7 @@ from multiprocessing import Process
 from utils import load_data
 from itertools import product
 import time
+import pickle
 from maxent import *
 
 
@@ -48,5 +49,9 @@ if __name__ == '__main__':
 
     for process in processes:
         process.join()
+
+    with open('results/multi_irl_results.pickle', 'wb') as output:
+        for i, process in enumerate(processes):
+            pickle.dump(processes, output, pickle.HIGHEST_PROTOCOL)
 
     print('That took {} seconds'.format(time.time() - starttime))
