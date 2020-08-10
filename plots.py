@@ -22,7 +22,8 @@ def plot_multi_weights(data_list,outname=None):
                  'epoch':[],
                  'expert':[],
                  'feature':[],
-                 'weight':[]}
+                 'weight':[],
+                 'seed':[]}
 
         for run in data_list:
             print(run)
@@ -43,6 +44,7 @@ def plot_multi_weights(data_list,outname=None):
                             wdict['expert'].append(e)
                             wdict['feature'].append(f)
                             wdict['weight'].append(weights[epoch, e, b, f])
+                            wdict['weight'].append(run['S'])
 
         wdf = pd.DataFrame().from_dict(wdict)
         wdf.to_csv(outname)
@@ -53,7 +55,8 @@ def plot_multi_weights(data_list,outname=None):
     plt.figure(figsize=(80, 40), dpi=1200)
 
     sns.relplot(x="epoch", y="weight",
-                hue="lr", col="feature",
+                hue="lr_decay", col="feature",
+                style="lr",
                 #height=5, aspect=.75,
                 facet_kws=dict(sharey=False),
                 kind="line", legend="brief", data=wdf)

@@ -30,7 +30,7 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 ### PLOTTING ###
 
 # multi run results 
-run_data=read_multi_data(maindir,year,kind="theta")
+run_data=read_multi_data('results',year,kind="theta")
 plot_multi_weights(run_data)
 
 #plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)

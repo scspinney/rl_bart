@@ -30,7 +30,8 @@ def split_fname2(s):
     var_dict["N"] = vars[2][1:]
     var_dict["E"] = vars[3][1:]
     var_dict["LR"] = vars[4][2:]
-    var_dict["LRD"] = vars[5][3:-4]
+    var_dict["LRD"] = vars[5][3:]
+    var_dict["S"] = vars[5][1:-4]
 
     return var_dict
 
