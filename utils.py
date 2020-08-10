@@ -3,6 +3,19 @@ import glob as glob
 import os
 
 
+def split_fname(s):
+     """
+     Splits the file name into identifying variables.
+     :param s: file name
+     :return: tuple of variable name and value
+     """
+
+     head = s.rstrip('npy').rstrip('.0123456789')
+     tail = s[len(head):]
+     # TODO: hard fix for the last term
+     tail = tail.rstrip('.npy')
+     return head, tail
+
 
 def load_data(maindir,year,N):
 
@@ -32,3 +45,14 @@ def load_data(maindir,year,N):
     feature_matrices = feature_matrices[:N]
 
     return feature_matrices, Tprob, trajectories
+
+
+def read_multi_data(maindir,year,kind="theta"):
+    files = glob.glob(os.path.join(maindir,f"{kind}*V{year}*N*E*LR*LRD*.npy"))
+    data_list = []
+    for f in files:
+        var_dict = {k:v for k,v in [split_fname(s) for s in f.split("_")]}
+        var_dict['fname'] = f
+        data_list.append(var_dict)
+    return data_list
+

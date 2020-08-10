@@ -3,7 +3,64 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 import datetime
+from numba import njit
 import os
+
+
+def plot_multi_weights(data_list,outname=None):
+
+
+    if outname is None:
+        outname = f"results/multi_run_data{str(datetime.date.today())}.csv"
+
+
+    if not os.path.exists(outname):
+
+        wdict = {'year':[],
+                  'n_epoch':[],
+                  'lr':[],
+                  'lr_decay':[],
+                 'epoch':[],
+                 'expert':[],
+                 'feature':[],
+                 'weight':[]}
+
+        for run in data_list:
+
+            N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(run['theta'])
+
+            # take every 20th epoch
+            for epoch in range(0, N_EPOCHS, 20):
+                for f in range(N_FEAT):
+                    for e in range(N_EXPERTS):
+                        for b in range(N_TRIALS):
+                            wdict['year'].append(run['V'])
+                            wdict['lr'].append(run['LR'])
+                            wdict['lr_decay'].append(run['LRD'])
+                            wdict['epoch'].append(epoch)
+                            wdict['expert'].append(e)
+                            wdict['feature'].append(f)
+                            wdict['weight'].append(run['theta'][epoch, e, b, f])
+
+        wdf = pd.DataFrame().from_dict(wdict)
+        wdf.to_csv(outname)
+    else:
+        wdf = pd.read_csv(outname)
+
+    plt.style.use('seaborn-darkgrid')
+    plt.figure(figsize=(80, 40), dpi=1200)
+
+    sns.relplot(x="epoch", y="weight",
+                hue="lr", col="feature",
+                #height=5, aspect=.75,
+                facet_kws=dict(sharey=False),
+                kind="line", legend="brief", data=wdf)
+
+    plt.tight_layout()
+    plt.savefig(f'results/multi_weights{str(datetime.date.today())}.png')
+    plt.show()
+
+
 
 
 def plot_weights(weights,kind='line'):
@@ -34,7 +91,7 @@ def plot_weights(weights,kind='line'):
              'feature':[],
              'weight':[]}
 
-    if any(not os.path.exists(p) for p in [out_d1,out_d2,out_d2]):
+    if any([not os.path.exists(p) for p in [out_d1,out_d2,out_d2]]):
 
         for epoch in range(0,N_EPOCHS,20):
             for f in range(N_FEAT):
@@ -97,7 +154,7 @@ def plot_weights(weights,kind='line'):
                     hue="expert", col="feature",
                     #height=5, aspect=.75,
                     facet_kws=dict(sharey=False),
-                    kind="line", legend="brief", legend_out=True,data=wdf3)
+                    kind="line", legend="brief", data=wdf3)
 
     plt.tight_layout()
     plt.savefig(f'results/weights{str(datetime.date.today())}.png')
