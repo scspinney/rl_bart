@@ -27,7 +27,8 @@ def plot_multi_weights(data_list,outname=None):
 
         for run in data_list:
 
-            N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(run['theta'])
+            weights = np.load(run['fname'])
+            N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
             # take every 20th epoch
             for epoch in range(0, N_EPOCHS, 20):
@@ -40,7 +41,7 @@ def plot_multi_weights(data_list,outname=None):
                             wdict['epoch'].append(epoch)
                             wdict['expert'].append(e)
                             wdict['feature'].append(f)
-                            wdict['weight'].append(run['theta'][epoch, e, b, f])
+                            wdict['weight'].append(weights[epoch, e, b, f])
 
         wdf = pd.DataFrame().from_dict(wdict)
         wdf.to_csv(outname)
