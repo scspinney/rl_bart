@@ -67,7 +67,7 @@ def load_data(maindir,year,N):
 
 
 def read_multi_data(maindir,year,kind="theta"):
-    files = glob.glob(os.path.join(maindir,f"{kind}*V{year}*N*E*LR*LRD*.npy"))
+    files = glob.glob(os.path.join(maindir,f"{kind}*V{year}*N*E*LR*LRD*S*.npy"))
     data_list = []
     for f in files:
         #var_dict = {k:v for k,v in [split_fname(s) for s in f.split("_")]}
