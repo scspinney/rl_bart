@@ -25,7 +25,7 @@ def split_fname2(s):
     """
     var_dict = dict()
     vars = s.split("_")
-    var_dict["name"] = vars[0]
+    var_dict["fname"] = s
     var_dict["V"] = vars[1][1]
     var_dict["N"] = vars[2][1:]
     var_dict["E"] = vars[3][1:]
