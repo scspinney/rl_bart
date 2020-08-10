@@ -4,7 +4,7 @@ from value_iteration import *
 
 
 
-def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,shuffle_training=True,use_prior=False):
+def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,shuffle_training=True,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -23,6 +23,9 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
     N_EXPERTS = len(trajectories)
     N_TRIALS = 30
     N_FEAT = feature_matrices[0].shape[-1]
+
+    # filename prefix
+    suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}"
 
     #N_STATES-=2
 
@@ -99,10 +102,11 @@ def maxent_irl(maindir,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_d
 
 
     print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete. Saving policy, esvf, weights, and gradients in results.")
-    np.save(f'results/policy_V{year}.npy',policy,allow_pickle=True)
-    np.save(f'results/esvf_V{year}.npy',esvf, allow_pickle=True)
-    np.save(f'results/theta_V{year}.npy', theta_vec, allow_pickle=True)
-    np.save(f'results/gradients_V{year}.npy', gradients, allow_pickle=True)
+
+    np.save(f'results/policy_{suffix}.npy',policy,allow_pickle=True)
+    np.save(f'results/esvf_{suffix}.npy',esvf, allow_pickle=True)
+    np.save(f'results/theta_{suffix}.npy', theta_vec, allow_pickle=True)
+    np.save(f'results/gradients_{suffix}.npy', gradients, allow_pickle=True)
 
     return theta
 

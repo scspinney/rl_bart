@@ -34,24 +34,26 @@ if __name__ == '__main__':
     processes = []
     for epoch, lr, lr_d in product(epochs,lrs,lr_decay):
 
-        p = Process(target=maxent_irl, args=(maxent_irl(maindir,
-                                                        year,
-                                                        feature_matrices,
-                                                        Tprob,
-                                                        gamma,
-                                                        trajectories,
-                                                        lr,
-                                                        lr_d,
-                                                        n_iters,
-                                                        epoch)))
+        p = Process(target=maxent_irl, args=(maindir,
+                                            N,
+                                            year,
+                                            feature_matrices,
+                                            Tprob,
+                                            gamma,
+                                            trajectories,
+                                            lr,
+                                            lr_d,
+                                            n_iters,
+                                            epoch))
         processes.append(p)
         p.start()
 
     for process in processes:
         process.join()
 
-    with open('results/multi_irl_results.pickle', 'wb') as output:
-        for i, process in enumerate(processes):
-            pickle.dump(processes, output, pickle.HIGHEST_PROTOCOL)
+    # NO saving needed
+    #with open('results/multi_irl_results.pickle', 'wb') as output:
+     #   for i, process in enumerate(processes):
+      #      pickle.dump(process, output, pickle.HIGHEST_PROTOCOL)
 
     print('That took {} seconds'.format(time.time() - starttime))
