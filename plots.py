@@ -17,7 +17,6 @@ def plot_multi_weights(data_list,outname=None):
     if not os.path.exists(outname):
 
         wdict = {'year':[],
-                  'n_epoch':[],
                   'lr':[],
                   'lr_decay':[],
                  'epoch':[],
