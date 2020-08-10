@@ -26,8 +26,9 @@ def plot_multi_weights(data_list,outname=None):
                  'weight':[]}
 
         for run in data_list:
-
+            print(run)
             weights = np.load(run['fname'])
+
             N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
 
             # take every 20th epoch
@@ -35,6 +36,7 @@ def plot_multi_weights(data_list,outname=None):
                 for f in range(N_FEAT):
                     for e in range(N_EXPERTS):
                         for b in range(N_TRIALS):
+
                             wdict['year'].append(run['V'])
                             wdict['lr'].append(run['LR'])
                             wdict['lr_decay'].append(run['LRD'])
