@@ -25,7 +25,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
     N_FEAT = feature_matrices[0].shape[-1]
 
     # filename prefix
-    suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}"
+    suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}_S{seed}"
 
     #N_STATES-=2
 
