@@ -14,11 +14,12 @@ if __name__ == '__main__':
 
     maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
     year = 2
-    N = 148
+    N = 138
     epochs = [10, 50, 100, 250, 500, 1000]
     n_iters = 1
     lrs = [1E-2, 1E-3, 1E-4, 1E-5]
     lr_decay = [1, 5, 10]
+    random_seeds = [0,42,333]
     gamma = 1
 
     feature_matrices, Tprob, trajectories = load_data(maindir, year, N)
@@ -32,7 +33,7 @@ if __name__ == '__main__':
 
     starttime = time.time()
     processes = []
-    for epoch, lr, lr_d in product(epochs,lrs,lr_decay):
+    for epoch, lr, lr_d, seed in product(epochs,lrs,lr_decay,random_seeds):
 
         p = Process(target=maxent_irl, args=(maindir,
                                             N,
@@ -44,7 +45,8 @@ if __name__ == '__main__':
                                             lr,
                                             lr_d,
                                             n_iters,
-                                            epoch))
+                                            epoch,
+                                            seed))
         processes.append(p)
         p.start()
 

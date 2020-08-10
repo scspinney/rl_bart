@@ -4,7 +4,7 @@ from value_iteration import *
 
 
 
-def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,shuffle_training=True,use_prior=False):
+def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,seed,shuffle_training=True,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -34,6 +34,8 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
         theta = np.load(os.path.join(maindir,'data','results',f'rewards_weights_{year-1}.npy'))
 
     else:
+        # set the random seed
+        np.random.seed(seed)
         theta = np.random.uniform(size=(N_FEAT,))
 
     # keeping track of gradients
