@@ -1,4 +1,4 @@
-from utils import load_data
+from utils import *
 from maxent import get_stats
 from likelihood import likelihood
 from plots import *
@@ -6,7 +6,7 @@ import numpy as np
 
 np.set_printoptions(suppress=True)
 
-maindir = '/Users/sean/Projects/rl_bart'
+maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
 year=2
 N=138
 
@@ -29,12 +29,16 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 
 ### PLOTTING ###
 
+# multi run results 
+run_data=read_multi_data(maindir,year,kind="theta")
+plot_multi_weights(run_data)
+
 #plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
 #plot_gradients(gradients)
-plot_weights(weights,'line')
+#plot_weights(weights,'line')
 
-#avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
+avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
 
-#print(f"Average Log Likelihood on training demonstrations: N = {N_EXPERTS*N_TRIAL} demonstrations, LL = {avg_LL}")
+print(f"Average Log Likelihood on training demonstrations: N = {N_EXPERTS*N_TRIAL} demonstrations, LL = {avg_LL}")
 
 
