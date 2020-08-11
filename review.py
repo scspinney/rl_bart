@@ -8,10 +8,10 @@ np.set_printoptions(suppress=True)
 
 
 
-def ll_table(maindir,year,N_TRIAL,trajectories, feature_matrices,discount, Tprob):
+def ll_table(maindir,year,N_TRIAL,trajectories, feature_matrices,discount, Tprob,clobber=True):
 
     outname='results/ll_table.csv'
-    if os.path.exists(outname):
+    if os.path.exists(outname) and not clobber:
         return pd.read_csv(outname)
 
     df = pd.DataFrame().from_dict(read_multi_data(maindir,year))
@@ -21,8 +21,10 @@ def ll_table(maindir,year,N_TRIAL,trajectories, feature_matrices,discount, Tprob
         weights = np.load(f)[-1,-1,-1,:] # last updated weights
         ll_list.append(likelihood(N_TRIAL,trajectories, feature_matrices, weights, discount, Tprob))
     df['LL'] = pd.Series(ll_list)
+    df.sort_values(by="LL",ascending=False,inplace=True)
+    df = df.rename(columns={"V": "Year", "E": "Epochs", "N": "Number of experts", "LR":"LR", "LRD": "LR Decay","S":"Seed","LL":"LogLikelihood" })
     df.to_csv('results/ll_table.csv')
-
+    df.iloc[:,1:].to_html('results/ll_table.html',index=False)
     return df
 
 
@@ -63,7 +65,9 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 
 #avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
 
-print(ll_table('results',year,N_TRIAL,trajectories, feature_matrices,1, Tprob))
+lldf=ll_table('results',year,N_TRIAL,trajectories, feature_matrices,1, Tprob)
+#plot_ll(lldf)
+
 #print(f"Average Log Likelihood on training demonstrations: N = {N_EXPERTS*N_TRIAL} demonstrations, LL = {avg_LL}")
 
 

@@ -7,6 +7,18 @@ from numba import njit
 import os
 
 
+def plot_ll(lldf):
+    g = sns.FacetGrid(lldf, col="LRD", row="S",sharex=True,sharey=False)
+    g.map(sns.barplot,"LR","LL")
+
+    #sns.FacetGrid(row="S",col="LRD",data=lldf)
+    #sns.barplot(x="LR",y="LL",data=lldf)
+    plt.tight_layout()
+    plt.savefig(f'results/LL_{str(datetime.date.today())}.png')
+    plt.show()
+
+
+
 def plot_multi_weights(data_list,outname=None):
 
 
