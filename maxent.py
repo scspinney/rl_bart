@@ -140,7 +140,7 @@ def get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories):
                     elif action == 1:
                         save_states.append(state)
                         #TODO: Artifical value increase at saving
-                        rewards[state] += 200
+                        #rewards[state] += 200
                 else:
                     rewards[state] += 10
 
