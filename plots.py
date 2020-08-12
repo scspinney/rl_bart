@@ -7,6 +7,15 @@ from numba import njit
 import os
 
 
+
+def plot_rt(path):
+    df = pd.read_csv(path)
+    df['BARTSlide.RT'] = df['BARTSlide.RT'].astype('float')
+    sns.scatterplot(x='PumpN', y='BARTSlide.RT', hue='balloon',data=df, legend='brief')
+    plt.show()
+
+
+
 def plot_ll(lldf):
     g = sns.FacetGrid(lldf, col="LRD", row="S",sharex=True,sharey=False)
     g.map(sns.barplot,"LR","LL")
