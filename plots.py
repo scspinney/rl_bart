@@ -7,6 +7,14 @@ from numba import njit
 import os
 
 
+def plot_rt(path):
+    df = pd.read_csv(path)
+    df['BARTSlide.RT'] = df['BARTSlide.RT'].astype('float')
+    df = df[df['Size']!=0]
+    df['logRT'] = np.log(df['BARTSlide.RT'])
+    sns.scatterplot(x='PumpN', y='logRT', hue='BARTSlide.RESP',data=df, legend='brief')
+    plt.show()
+
 def plot_ll(lldf):
     g = sns.FacetGrid(lldf, col="LRD", row="S",sharex=True,sharey=False)
     g.map(sns.barplot,"LR","LL")
@@ -328,3 +336,59 @@ def plot_gradients(gradients):
     fig.tight_layout()
     plt.savefig(f'results/gradients{str(datetime.date.today())}.png')
     plt.show()
+
+
+def plot_rl_trajectories(trajectories):
+
+    fig, axs = plt.subplots(2, 3, figsize=(15, 16))
+
+    x = np.round(np.linspace(0, 128, 128))
+
+    axs[0, 0].plot(x, trajectories[4]['svf'], 'r--', label='SVF')
+    axs[0, 0].plot(x, trajectories[4]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[0, 0].plot(x, trajectories[4]['our_esvf'], 'g^', label='Our ESVF')
+    axs[0, 0].set_title('Observed vs Predicted SVF: expert 0, balloon 4', fontsize=16, loc='left')
+
+    # axs[1].set_title('expert: 0, traj:40')
+
+    axs[0, 1].plot(x, trajectories[40]['svf'], 'r--', label='SVF')
+    axs[0, 1].plot(x, trajectories[40]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[0, 1].plot(x, trajectories[40]['our_esvf'], 'g^', label='Our ESVF')
+    axs[0, 1].set_title('expert 1, balloon 10')
+
+    axs[0, 2].plot(x, trajectories[55]['svf'], 'r--', label='SVF')
+    axs[0, 2].plot(x, trajectories[55]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[0, 2].plot(x, trajectories[55]['our_esvf'], 'g^', label='Our ESVF')
+    axs[0, 2].set_title('expert 1, balloon 15')
+
+    axs[1, 0].plot(x, trajectories[36]['svf'], 'r--', label='SVF')
+    axs[1, 0].plot(x, trajectories[36]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[1, 0].plot(x, trajectories[36]['our_esvf'], 'g^', label='Our ESVF')
+    axs[1, 0].set_title('expert 1, balloon 6')
+
+    axs[1, 1].plot(x, trajectories[0]['svf'], 'r--', label='SVF')
+    axs[1, 1].plot(x, trajectories[0]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[1, 1].plot(x, trajectories[0]['our_esvf'], 'g^', label='Our ESVF')
+    axs[1, 1].set_title('expert 0, balloon 1')
+
+    axs[1, 2].plot(x, trajectories[16]['svf'], 'r--', label='SVF')
+    axs[1, 2].plot(x, trajectories[16]['liu_esvf'], 'bs', label='Liu ESVF')
+    axs[1, 2].plot(x, trajectories[16]['our_esvf'], 'g^', label='Our ESVF')
+    axs[1, 2].set_title('expert 1, balloon 16')
+
+    for ax in axs.flat:
+        ax.set(xlabel='States', ylabel='Probability of being in state')
+
+    # Hide x labels and tick labels for top plots and y ticks for right plots.
+    for ax in axs.flat:
+        ax.label_outer()
+
+    lines, labels = axs[0, 0].get_legend_handles_labels()
+    # lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+
+    # finally we invoke the legend (that you probably would like to customize...)
+
+    fig.legend(lines, labels)
+    plt.tight_layout()
+    plt.show()
+
