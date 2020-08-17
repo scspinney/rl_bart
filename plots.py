@@ -8,6 +8,7 @@ import os
 
 
 
+
 def plot_rt(path):
     df = pd.read_csv(path)
     df['BARTSlide.RT'] = df['BARTSlide.RT'].astype('float')
@@ -78,6 +79,7 @@ def plot_rl_trajectories(trajectories):
 
     fig.legend(lines, labels)
     plt.tight_layout()
+    plt.savefig(f'results/rl_expert_trajectories{str(datetime.date.today())}.png')
     plt.show()
 
 
