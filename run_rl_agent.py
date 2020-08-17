@@ -107,7 +107,6 @@ def generate_trajectories(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma
     # init the features that aren't dynamic i.e. the pump#
     fmat[:,:,:,-1] = np.arange(N_STATES)
 
-
     for e in range(N_EXPERTS):
 
         # init an agent
@@ -151,8 +150,63 @@ def generate_trajectories(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma
             fmat[e,t+1] = agent.update_next_fmat(t,state,not_pop)
         trajectories.append(agent.trajectories)
 
+
     np.save(f'data/agents/feature_matricesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',fmat)
     np.save(f'data/agents/trajectoriesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',trajectories,allow_pickle=True)
+
+
+def generate_trajectories_human_features(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma,popPoints,human_fmat_path):
+
+    trajectories = []
+    # feature matrix
+    fmat = np.load(human_fmat_path)
+
+    for e in range(N_EXPERTS):
+
+        # init an agent
+        agent = irlAgent(weights, gamma, fmat[e],risk=0)
+
+        for t in range(1,N_TRIALS-1):
+            print(f"Trial {t}")
+            # reinitialize trial flags
+            not_pop = True
+            not_save = True
+            state = 0  # first pump
+            traj=[]
+
+            while not_pop and not_save:
+
+                # estimated reward for all state as defined by current fmat and weights
+                reward = np.dot(agent.fmat[t], weights) # (N_STATES,)
+
+                # get policy using reward
+                policy = find_policy_jit(N_STATES,reward,2,gamma,Tprob)
+
+                # make choice
+                choice = agent.take_action(state,policy)
+
+                # update trajectories
+                traj.append((state,choice))
+
+                if choice == 0: # pump
+
+                    if state == popPoints[t]:
+                        not_pop = False
+                        agent.update_pops(state)
+                    else:
+                        state+=1
+
+                else: # save
+                    not_save = False
+                    agent.update_saves(state)
+
+            agent.trajectories.append(traj)
+        trajectories.append(agent.trajectories)
+
+
+    np.save(f'data/agents/feature_matricesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',fmat)
+    np.save(f'data/agents/trajectoriesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',trajectories,allow_pickle=True)
+
 
 
 def recover_trajectories(N_EXPERTS,N_STATES,N_ACTIONS,Tprob,weights,gamma,trajectories,feature_matrices):
