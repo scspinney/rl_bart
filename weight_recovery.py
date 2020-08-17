@@ -4,8 +4,7 @@ import pandas as pd
 
 def evaluate_recovery(actual_path,recovered_path):
 
-    #actual = np.load(actual_path)
-    #actual = actual[-1,-1,-1,:]
+
     actual = [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
               0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
               -0.044085]
@@ -24,14 +23,16 @@ def evaluate_recovery(actual_path,recovered_path):
                           "9: whether is average save status",
                           "10: whether is average end status",
                           "11: # of steps (pumps) in current trial"])
+
+
     df = pd.DataFrame({'Feature':features,
                        'Actual weights': actual,
                        'Recovered weights': recovered})
 
     df['Error'] = df['Actual weights'] - df['Recovered weights']
-    df['Percentage error'] = 100*(df['Error']/df['Actual weights'])
+    df['Percentage error'] = 100*(abs(df['Error'])/df['Actual weights'])
 
-    df.to_html("results/evaluate_recovery.htmll")
+    df.to_html("results/evaluate_recovery.html")
 
 
 actual_path = ''

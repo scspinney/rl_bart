@@ -25,12 +25,13 @@ class irlAgent():
 
     EPSILON_DEFAULT = 0.3
 
-    def __init__(self,weights, gamma, fmat, risk=0.1):
+    def __init__(self,weights, gamma, fmat, risk=0):
         self.weights = weights
         self.gamma = gamma
         self.fmat = fmat
         self.save_states = []
         self.pop_states = []
+        self.trajectories = []
 
         #TODO: risky behavior injection
         self.risk = risk
@@ -110,7 +111,7 @@ def generate_trajectories(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma
     for e in range(N_EXPERTS):
 
         # init an agent
-        agent = irlAgent(weights, gamma, fmat[e],risk=0.01)
+        agent = irlAgent(weights, gamma, fmat[e],risk=0)
 
         for t in range(1,N_TRIALS-1):
             print(f"Trial {t}")
@@ -123,10 +124,10 @@ def generate_trajectories(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma
             while not_pop and not_save:
 
                 # estimated reward for all state as defined by current fmat and weights
-                reward = agent.fmat[t].dot(weights) # (N_STATES,)
+                reward = np.dot(agent.fmat[t], weights) # (N_STATES,)
 
                 # get policy using reward
-                policy = find_policy(N_STATES,reward,2,gamma,Tprob)
+                policy = find_policy_jit(N_STATES,reward,2,gamma,Tprob)
 
                 # make choice
                 choice = agent.take_action(state,policy)
@@ -146,9 +147,9 @@ def generate_trajectories(N_EXPERTS,N_TRIALS,N_FEAT,N_STATES,Tprob,weights,gamma
                     not_save = False
                     agent.update_saves(state)
 
-            trajectories.append(traj)
-            print(traj)
+            agent.trajectories.append(traj)
             fmat[e,t+1] = agent.update_next_fmat(t,state,not_pop)
+        trajectories.append(agent.trajectories)
 
     np.save(f'data/agents/feature_matricesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',fmat)
     np.save(f'data/agents/trajectoriesN{N_EXPERTS}T{N_TRIALS}S{N_STATES}F{N_FEAT}.npy',trajectories,allow_pickle=True)
@@ -197,28 +198,24 @@ feature_matrices, Tprob, trajectories = load_data(maindir,year,N)
 
 #N_EXPERTS = len(feature_matrices)
 #N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
-N_EXPERTS = 1
+N_EXPERTS = 138
 N_TRIAL = 30
 N_STATES = 128
 N_FEAT = 11
 #N_STATES -= 2
 N_ACTIONS=2
 
-gamma=1
-
-#TODO: temp
-#Tprob = Tprob[:-2,:,:-2]
+gamma=0.8
 
 weights = {'Liu': [5, 0.3,   0.7,  0.7, 1.2, 0.1, 1.2, 0.6, 1.35, 1, 2.5],
 
-'Ours': [ 0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
-        0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
-       -0.044085]}
-
+            'Ours': [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
+                     0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
+                     -0.044085]}
 
 # popPoints resampled to match trial number
 popPoints = random.choices(popPoints,k=N_TRIAL)
-generate_trajectories(N_EXPERTS,N_TRIAL,N_FEAT,N_STATES,Tprob,weights['Liu'],gamma,popPoints)
+generate_trajectories(N_EXPERTS,N_TRIAL,N_FEAT,N_STATES,Tprob,weights['Ours'],gamma,popPoints)
 
 ###### END OF INITIALIZATION STUFF
 
