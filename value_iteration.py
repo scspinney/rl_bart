@@ -120,7 +120,7 @@ def optimal_value_jit(n_states, n_actions, transition_probabilities, reward,
 
     v = np.zeros(n_states)
 
-    diff = -1000000
+    diff = 1000000
     while diff > threshold:
         diff = 0
         for s in range(n_states):
