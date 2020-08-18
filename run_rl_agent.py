@@ -1,14 +1,58 @@
 from maxent import *
 from plots import plot_rl_trajectories
-from value_iteration import find_policy
+from value_iteration import *
 from utils import *
 import pickle
 import datetime
 import random
 
+class Agent():
+
+    def __init__(self,risk=0):
+        self.save_states = []
+        self.pop_states = []
+        self.trajectories = []
 
 
-class irlAgent():
+    def update_saves(self,state):
+        self.save_states.append(state)
+
+    def update_pops(self,state):
+        self.pop_states.append(state)
+
+
+
+
+class rlAgent(Agent):
+
+
+    EPSILON_DEFAULT = 0.3
+
+    def __init__(self, lr, epsilon):
+        super().__init__()
+        self.lr = lr
+        self.epsilon = epsilon
+
+    def update_policy(self,n_states,n_actions,discount,reward,Tprob):
+        self.policy = find_policy_jit(n_states, reward, n_actions, discount, Tprob, v=None, stochastic=True, threshold=1e-2)
+
+    def take_action(self,state,decay=False):
+
+        #TODO: take risky action
+        if np.random.rand() < self.epsilon:
+            action = np.random.choice((0,1))
+        else:
+            action = 1 if np.random.binomial(1,self.policy[state,1],1) else 0
+
+        if decay:
+            self.epsilon /= (self.epsilon+1)
+
+        return action
+
+
+
+
+class irlAgent(Agent):
 
     # Features:
     # 1: # of times being in this state
@@ -26,22 +70,11 @@ class irlAgent():
     EPSILON_DEFAULT = 0.3
 
     def __init__(self,weights, gamma, fmat, risk=0):
+        super().__init__()
         self.weights = weights
         self.gamma = gamma
         self.fmat = fmat
-        self.save_states = []
-        self.pop_states = []
-        self.trajectories = []
-
-        #TODO: risky behavior injection
         self.risk = risk
-
-
-    def update_saves(self,state):
-        self.save_states.append(state)
-
-    def update_pops(self,state):
-        self.pop_states.append(state)
 
     def update_next_fmat(self,t,end_state,not_popped):
 
