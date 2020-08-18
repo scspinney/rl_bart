@@ -21,34 +21,55 @@ class Agent():
         self.pop_states.append(state)
 
 
-
-
 class rlAgent(Agent):
 
 
     EPSILON_DEFAULT = 0.3
 
-    def __init__(self, lr, epsilon):
+    def __init__(self,type,lr, epsilon,discount,n_states,n_actions):
         super().__init__()
+        self.type = type
         self.lr = lr
         self.epsilon = epsilon
+        self.discount = discount
+        self.n_actions = n_actions
+        self.n_states = n_states
 
-    def update_policy(self,n_states,n_actions,discount,reward,Tprob):
-        self.policy = find_policy_jit(n_states, reward, n_actions, discount, Tprob, v=None, stochastic=True, threshold=1e-2)
+        self.policy = np.zeros((n_states,n_actions))
+
+    def update_policy(self,state,action,reward):
+
+        if self.type == 'QL': # update for Q-learning agent
+
+            self.update_Q(state,action,reward)
+
 
     def take_action(self,state,decay=False):
 
-        #TODO: take risky action
+        if state == self.n_states:
+            return 1
+
         if np.random.rand() < self.epsilon:
             action = np.random.choice((0,1))
+
         else:
-            action = 1 if np.random.binomial(1,self.policy[state,1],1) else 0
+            action = np.argmax(self.policy[state])
 
         if decay:
             self.epsilon /= (self.epsilon+1)
 
         return action
 
+    def update_Q(self,state,action,reward):
+
+        self.policy[state,action] = self.policy[state,action] + self.lr*(reward + self.discount*self.maxQ(state+1) - self.policy[state,action])
+
+    def maxQ(self,state):
+
+        if state == self.n_states:
+            return 0
+
+        return max([self.policy[state,a] for a in range(self.n_actions)])
 
 
 
@@ -274,61 +295,63 @@ def recover_trajectories(N_EXPERTS,N_STATES,N_ACTIONS,Tprob,weights,gamma,trajec
 
 ###### INITIALIZATION STUFF
 
-maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
-year=2
-N=138
+if __name__ == "__main__":
+
+    maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
+    year=2
+    N=138
 
 
-popPoints = [64,105,39,96,88,21,121,10,64,32,64,101,26,34,47,121,64,95,75,13,64,112,30,88,9,64,91,17,115,50]
+    popPoints = [64,105,39,96,88,21,121,10,64,32,64,101,26,34,47,121,64,95,75,13,64,112,30,88,9,64,91,17,115,50]
 
-feature_matrices, Tprob, trajectories = load_data(maindir,year,N)
+    feature_matrices, Tprob, trajectories = load_data(maindir,year,N)
 
-#N_EXPERTS = len(feature_matrices)
-#N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
-N_EXPERTS = 5
-N_TRIAL = 30
-N_STATES = 128
-N_FEAT = 11
-#N_STATES -= 2
-N_ACTIONS=2
+    #N_EXPERTS = len(feature_matrices)
+    #N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
+    N_EXPERTS = 5
+    N_TRIAL = 30
+    N_STATES = 128
+    N_FEAT = 11
+    #N_STATES -= 2
+    N_ACTIONS=2
 
-gamma=1
+    gamma=1
 
-weights = {'Liu': [5, 0.3,   0.7,  0.7, 1.2, 0.1, 1.2, 0.6, 1.35, 1, 2.5],
+    weights = {'Liu': [5, 0.3,   0.7,  0.7, 1.2, 0.1, 1.2, 0.6, 1.35, 1, 2.5],
 
-             'Ours': [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
-                      0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
-                      -0.044085]
+                 'Ours': [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
+                          0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
+                          -0.044085]
 
-           #'Ours': [0.36168188, 1.27113523, 1.74129503, 0.59647852, 0.32134919,
-            #        0.15810741, 0.11944254, 1.04198014, 0.64163186, 0.81853915, 0.04663256]
-           }
+               #'Ours': [0.36168188, 1.27113523, 1.74129503, 0.59647852, 0.32134919,
+                #        0.15810741, 0.11944254, 1.04198014, 0.64163186, 0.81853915, 0.04663256]
+               }
 
-w = np.load('results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy')
-weights['Ours'] = w[-1].mean(axis=(0,1))
+    w = np.load('results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy')
+    weights['Ours'] = w[-1].mean(axis=(0,1))
 
-# popPoints resampled to match trial number
-popPoints = random.choices(popPoints,k=N_TRIAL)
-#generate_trajectories(N_EXPERTS,N_TRIAL,N_FEAT,N_STATES,Tprob,weights['Ours'],gamma,popPoints)
+    # popPoints resampled to match trial number
+    popPoints = random.choices(popPoints,k=N_TRIAL)
+    #generate_trajectories(N_EXPERTS,N_TRIAL,N_FEAT,N_STATES,Tprob,weights['Ours'],gamma,popPoints)
 
-###### END OF INITIALIZATION STUFF
-
-
-out_name = f'results/rl_esvf{str(datetime.date.today())}.pl'
-clobber=True
-if not os.path.exists(out_name) or clobber:
-
-    trajectories = recover_trajectories(N_EXPERTS,N_STATES,N_ACTIONS,Tprob,weights,gamma,trajectories,feature_matrices)
-    plot_rl_trajectories(trajectories)
-    pickle.dump(trajectories, open(out_name, "wb"))
-
-else:
-    trajectories = pickle.load(open(out_name, "rb"))
+    ###### END OF INITIALIZATION STUFF
 
 
-#plot_rl_trajectories(trajectories)
+    out_name = f'results/rl_esvf{str(datetime.date.today())}.pl'
+    clobber=True
+    if not os.path.exists(out_name) or clobber:
 
-print("Done.")
+        trajectories = recover_trajectories(N_EXPERTS,N_STATES,N_ACTIONS,Tprob,weights,gamma,trajectories,feature_matrices)
+        plot_rl_trajectories(trajectories)
+        pickle.dump(trajectories, open(out_name, "wb"))
+
+    else:
+        trajectories = pickle.load(open(out_name, "rb"))
+
+
+    #plot_rl_trajectories(trajectories)
+
+    print("Done.")
 
 
 
