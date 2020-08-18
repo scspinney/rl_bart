@@ -24,7 +24,7 @@ def likelihood(N_TRIAL,trajectories, feature_matrices, weights, discount, Tprob)
 
             curr_fmat = feature_matrices[e][t][:-2]
 
-            rewards = rewards = np.dot(curr_fmat, weights)
+            rewards = np.dot(curr_fmat, weights)
 
             policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, discount, Tprob)
             ll = 0

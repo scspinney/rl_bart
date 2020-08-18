@@ -5,12 +5,11 @@ import pandas as pd
 def evaluate_recovery(actual_path,recovered_path):
 
 
-    actual = [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
-              0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
-              -0.044085]
+    actual = np.load(actual_path)
+    actual = actual[-1].mean(axis=(0,1))
 
     recovered = np.load(recovered_path)
-    recovered  = recovered [-1, -1, -1, :]
+    recovered  = recovered [-1].mean(axis=(0,1))
 
     features = pd.Series(["1: # of times being in this state",
                           "2: whether this state was burst in previous trial",
@@ -35,5 +34,6 @@ def evaluate_recovery(actual_path,recovered_path):
     df.to_html("results/evaluate_recovery.html")
 
 
-actual_path = ''
-recovered_path = 'results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy'
+actual_path = 'results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy'
+recovered_path = 'results/ai_theta_V2_N138_E10_LR0.0001_LRD1_S42.npy'
+evaluate_recovery(actual_path,recovered_path)
