@@ -76,3 +76,10 @@ def read_multi_data(maindir,year,kind="theta"):
         data_list.append(var_dict)
     return data_list
 
+
+
+def print_run_params(**params):
+    print("** PARAMETERS ** ")
+    for k,v in params.items():
+        print(f"{k}: {v}")
+    print("**            ** ")

@@ -8,6 +8,17 @@ import os
 
 
 
+def plot_weights_bar(df):
+    # Draw a nested barplot to show survival for class and sex
+    g = sns.catplot(x="Features", y="Weight", hue="Player", data=df,
+                    height=6, kind="bar", palette="muted",legend=False)
+    g.despine(left=True)
+    g
+    plt.legend(loc='best')
+    plt.savefig(f'results/compare_weights{str(datetime.date.today())}.png')
+    plt.show()
+
+
 
 def plot_rt(path):
     df = pd.read_csv(path)
