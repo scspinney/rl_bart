@@ -113,7 +113,8 @@ if __name__ == "__main__":
         game = BART(params['N_STATES'], params['N_ACTIONS'], params['N_TRIALS'], popPoints)
 
         # init a new agent
-        agent = rlAgent(type='QL', lr=0.8, epsilon=0.01, discount=0.8, n_states=128, n_actions=2)
+        #agent = rlAgent(type='QL', lr=0.8, epsilon=0.01, discount=0.8, n_states=128, n_actions=2)
+        agent = rlAgent(type='Random', lr=0, epsilon=1, discount=0.8, n_states=128, n_actions=2)
         agent.init_feature_matrix(params['N_TRIALS'], params['N_FEAT'])
 
         # play bart
