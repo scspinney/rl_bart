@@ -15,7 +15,17 @@ def plot_weights_bar(df):
     g.despine(left=True)
     g
     plt.legend(loc='best')
-    plt.savefig(f'results/compare_weights{str(datetime.date.today())}.png')
+    plt.savefig(f'results/compare_allweights{str(datetime.date.today())}.png')
+    plt.show()
+
+    reduced_df = df.query('Features == 1 | Features == 11')
+
+    g = sns.catplot(x="Features", y="Weight", hue="Player", data=reduced_df,
+                    height=6, kind="bar", palette="muted",legend=False)
+    g.despine(left=True)
+    g
+    plt.legend(loc='best')
+    plt.savefig(f'results/compare_rweights{str(datetime.date.today())}.png')
     plt.show()
 
 
