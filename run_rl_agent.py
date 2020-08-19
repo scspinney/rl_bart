@@ -43,6 +43,14 @@ class rlAgent(Agent):
 
             self.update_Q(state,action,reward)
 
+    def init_feature_matrix(self,n_trials,n_feat):
+
+        self.n_trials = n_trials
+        self.fmat = np.zeros((n_trials,self.n_states, n_feat))
+
+        # init the features that aren't dynamic i.e. the pump#
+        self.fmat[:,:,-1] = np.arange(self.n_states)
+
 
     def take_action(self,state,decay=False):
 
@@ -70,6 +78,55 @@ class rlAgent(Agent):
             return 0
 
         return max([self.policy[state,a] for a in range(self.n_actions)])
+
+    def update_next_fmat(self,t,end_state,not_popped):
+
+        if t+1 == self.n_trials:
+            return 1
+
+        # mod F1
+        self.fmat[t+1,:,0] = np.array(list((self.fmat[t,:end_state+1,0] + 1)) + list(self.fmat[t,end_state+1:,0]))
+
+        if not_popped == False: # popped
+
+            # mod F2
+            self.fmat[t+1,end_state,1] = 1
+
+        else: # saved
+
+            # mod F3
+            self.fmat[t + 1, end_state, 2] = 1
+
+
+
+        # mod F8
+        if self.pop_states != []:
+            avg_pop_index = int(np.mean(self.pop_states))
+            self.fmat[t + 1, avg_pop_index, 7] = 1
+
+        # mod F9
+        if self.save_states != []:
+            avg_save_index = int(np.mean(self.save_states))
+            self.fmat[t + 1, avg_save_index, 8] = 1
+
+        # mod F3
+        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t, end_state, 1] else 0
+
+        # mod F4
+        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t, end_state, 2] else 0
+
+        # mod F5
+        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t - 1, end_state, 1] else 0
+
+        # mod F6
+        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t - 1, end_state, 2] else 0
+
+        # mod F10
+        avg_end_index = int(np.mean(self.save_states+self.pop_states))
+        self.fmat[t + 1, avg_end_index, 9] = 1
+
+
+
 
 
 
@@ -102,35 +159,35 @@ class irlAgent(Agent):
         # mod F1
         self.fmat[t+1,:,0] = np.array(list((self.fmat[t,:end_state+1,0] + 1)) + list(self.fmat[t,end_state+1:,0]))
 
-        if not_popped == False:
+        if not_popped == False: # saved
 
             # mod F2
-            self.fmat[t+1,end_state,1] = 1
+            self.fmat[t+1,end_state,2] = 1
 
             # mod F8
             avg_pop_index = int(np.mean(self.pop_states))
             self.fmat[t+1,avg_pop_index,7] = 1
 
-        else:
+        else: # pop
 
             # mod F3
-            self.fmat[t + 1, end_state, 2] = 1
+            self.fmat[t + 1, end_state, 1] = 1
 
             # mod F9
             avg_save_index = int(np.mean(self.save_states))
             self.fmat[t+1,avg_save_index,8] = 1
 
         # mod F3
-        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t - 1, end_state, 3] else 0
+        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t, end_state, 1] else 0
 
         # mod F4
-        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t - 1, end_state, 4] else 0
+        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t, end_state, 2] else 0
 
         # mod F5
-        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t - 2, end_state, 3] else 0
+        self.fmat[t + 1, end_state, 3] = 1 if self.fmat[t - 1, end_state, 1] else 0
 
         # mod F6
-        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t - 2, end_state, 4] else 0
+        self.fmat[t + 1, end_state, 4] = 1 if self.fmat[t - 1, end_state, 2] else 0
 
         # mod F10
         avg_end_index = int(np.mean(self.save_states+self.pop_states))
