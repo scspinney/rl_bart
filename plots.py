@@ -18,7 +18,7 @@ def plot_weights_bar(df):
     plt.savefig(f'results/compare_allweights{str(datetime.date.today())}.png')
     plt.show()
 
-    reduced_df = df.query('Features == 1 | Features == 11')
+    reduced_df = df.query("Features == 'F1' | Features == 'F11'")
 
     g = sns.catplot(x="Features", y="Weight", hue="Player", data=reduced_df,
                     height=6, kind="bar", palette="muted",legend=False)
