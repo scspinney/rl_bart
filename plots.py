@@ -18,14 +18,46 @@ def plot_weights_bar(df):
     plt.savefig(f'results/compare_allweights{str(datetime.date.today())}.png')
     plt.show()
 
-    reduced_df = df.query("Features == 'F1' | Features == 'F11'")
+    reduced_df1 = df.query("Features == 'F1'")
+    reduced_df2 = df.query("Features == 'F11'")
 
-    g = sns.catplot(x="Features", y="Weight", hue="Player", data=reduced_df,
+    reduced_df1['Cbrt weight'] = np.cbrt(reduced_df1['Weight'])
+    reduced_df2['Cbrt weight'] = np.cbrt(reduced_df2['Weight'])
+    # plot 2
+    g = sns.catplot(x="Features", y="Cbrt weight", hue="Player", data=reduced_df1,
                     height=6, kind="bar", palette="muted",legend=False)
     g.despine(left=True)
     g
+    plt.ylabel("Cube root transformed weights")
     plt.legend(loc='best')
-    plt.savefig(f'results/compare_rweights{str(datetime.date.today())}.png')
+    plt.savefig(f'results/compare_F1weight{str(datetime.date.today())}.png')
+    plt.show()
+    # plot 3
+    g = sns.catplot(x="Features", y="Cbrt weight", hue="Player", data=reduced_df2,
+                    height=6, kind="bar", palette="muted",legend=False)
+    g.despine(left=True)
+    g
+    plt.ylabel("Cube root transformed weights") 
+    plt.legend(loc='best')
+    plt.savefig(f'results/compare_F11weight{str(datetime.date.today())}.png')
+    plt.show()
+    # plot 4
+    g = sns.catplot(x="Features", y="Weight", hue="Player", data=reduced_df1.query("Player != 'alwayspump'"),
+                    height=6, kind="bar", palette="muted",legend=False)
+    g.despine(left=True)
+    g
+    plt.ylabel("Weights")
+    plt.legend(loc='best')
+    plt.savefig(f'results/compare_F1rweight{str(datetime.date.today())}.png')
+    plt.show()
+    # plot 5
+    g = sns.catplot(x="Features", y="Weight", hue="Player", data=reduced_df2.query("Player != 'alwayspump'"),
+                    height=6, kind="bar", palette="muted",legend=False)
+    g.despine(left=True)
+    g
+    plt.ylabel("Weights")
+    plt.legend(loc='best')
+    plt.savefig(f'results/compare_F11rweight{str(datetime.date.today())}.png')
     plt.show()
 
 
@@ -315,9 +347,9 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
                   data=rewards,
                   facet_kws={"legend_out": False})
 
-        ax.ax.plot(x,obs_exp_rewards,color='green',label="Observed average reward")
+        #ax.ax.plot(x,obs_exp_rewards,color='green',label="Observed average reward")
         ax.ax.plot(x, avg_pred_reward, color='blue', label="Average predicted reward")
-        ax.ax.plot(x,expected_rewards,color='pink',label="Expected reward")
+        #ax.ax.plot(x,expected_rewards,color='pink',label="Expected reward")
         #plt.plot(x,obs_exp_rewards,style='--',label="Observed Average Reward")
         #plt.plot(x,expected_rewards,color='pink',label="Expected reward")
 
