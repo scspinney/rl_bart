@@ -4,7 +4,7 @@ from value_iteration import *
 
 
 
-def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,seed,shuffle_training=True,use_prior=False):
+def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,seed,ai,ai_type,shuffle_training=True,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -62,8 +62,10 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
             for t,trajectory in enumerate(all_expert_trajs):
                 #print(f"-------------------- NEW TRAJECTORY NUMBER {t} --------------------------")
-
-                curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
+                if ai:
+                    curr_fmat = feature_matrix[t]
+                else:
+                    curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
 
                 feat_exp = np.zeros([N_FEAT])
 
@@ -75,7 +77,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
                     # compute expected reward for feature matrix
                     rewards = np.dot(curr_fmat, theta)
-
+                    #print(rewards)
                     # generate policy
                     policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
 
@@ -105,10 +107,12 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
     print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete. Saving policy, esvf, weights, and gradients in results.")
 
-    np.save(f'results/policy_{suffix}.npy',policy,allow_pickle=True)
-    np.save(f'results/esvf_{suffix}.npy',esvf, allow_pickle=True)
-    np.save(f'results/theta_{suffix}.npy', theta_vec, allow_pickle=True)
-    np.save(f'results/gradients_{suffix}.npy', gradients, allow_pickle=True)
+    prefix=f"{ai_type}_ai_" if ai else ""
+
+    #np.save(f'results/{prefix}policy_{suffix}.npy',policy,allow_pickle=True)
+    #np.save(f'results/{prefix}esvf_{suffix}.npy',esvf, allow_pickle=True)
+    np.save(f'results/{prefix}theta_{suffix}.npy', theta_vec, allow_pickle=True)
+    np.save(f'results/{prefix}gradients_{suffix}.npy', gradients, allow_pickle=True)
 
     return theta
 
