@@ -26,22 +26,25 @@ class rlAgent(Agent):
 
     EPSILON_DEFAULT = 0.3
 
-    def __init__(self,type,lr, epsilon,discount,n_states,n_actions):
+    def __init__(self,**params):
         super().__init__()
-        self.type = type
-        self.lr = lr
-        self.epsilon = epsilon
-        self.discount = discount
-        self.n_actions = n_actions
-        self.n_states = n_states
+        self.type = params['type']
+        self.lr = params['lr']
+        self.epsilon = params['epsilon']
+        self.discount = params['discount']
+        self.n_actions = params['n_actions']
+        self.n_states = params['n_states']
 
-        self.policy = np.zeros((n_states,n_actions))
+        self.policy = np.zeros((params['n_states'],params['n_actions']))
 
     def update_policy(self,state,action,reward):
 
         if self.type == 'QL': # update for Q-learning agent
 
             self.update_Q(state,action,reward)
+
+        if self.type == 'Random':
+            pass
 
     def init_feature_matrix(self,n_trials,n_feat):
 
@@ -374,15 +377,7 @@ if __name__ == "__main__":
 
     gamma=1
 
-    weights = {'Liu': [5, 0.3,   0.7,  0.7, 1.2, 0.1, 1.2, 0.6, 1.35, 1, 2.5],
-
-                 'Ours': [0.49049365,  0.97522182,  0.81013244,  0.59797393,  0.16992047,
-                          0.15576953,  0.06382926,  0.87656816,  0.60628161,  0.71614336,
-                          -0.044085]
-
-               #'Ours': [0.36168188, 1.27113523, 1.74129503, 0.59647852, 0.32134919,
-                #        0.15810741, 0.11944254, 1.04198014, 0.64163186, 0.81853915, 0.04663256]
-               }
+    weights = {'Liu': [5, 0.3,   0.7,  0.7, 1.2, 0.1, 1.2, 0.6, 1.35, 1, 2.5]}
 
     w = np.load('results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy')
     weights['Ours'] = w[-1].mean(axis=(0,1))

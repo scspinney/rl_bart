@@ -99,6 +99,8 @@ if __name__ == "__main__":
     'N_EXPERTS':138,
     }
 
+    agent_params = {type:'Random', 'lr':0, 'epsilon':1, 'discount':0.8, 'n_states':128, 'n_actions':2}
+
     #transition_probability = np.load('data/transition_prob_Y2.npy')
     popPoints = [64,105,39,96,88,21,121,10,64,32,64,101,26,34,47,121,64,95,75,13,64,112,30,88,9,64,91,17,115,50]
 
@@ -114,7 +116,7 @@ if __name__ == "__main__":
 
         # init a new agent
         #agent = rlAgent(type='QL', lr=0.8, epsilon=0.01, discount=0.8, n_states=128, n_actions=2)
-        agent = rlAgent(type='Random', lr=0, epsilon=1, discount=0.8, n_states=128, n_actions=2)
+        agent = rlAgent(**agent_params)
         agent.init_feature_matrix(params['N_TRIALS'], params['N_FEAT'])
 
         # play bart
@@ -124,8 +126,8 @@ if __name__ == "__main__":
         fmats[e] = agent.fmat
         trajectories.append(agent.trajectories)
 
-    np.save(f"data/agents/feature_matricesN{params['N_EXPERTS']}T{params['N_TRIALS']}S{params['N_STATES']}F{params['N_FEAT']}.npy",fmats,allow_pickle=True)
-    np.save(f"data/agents/trajectoriesN{params['N_EXPERTS']}T{params['N_TRIALS']}S{params['N_STATES']}F{params['N_FEAT']}.npy",trajectories,allow_pickle=True)
+    np.save(f"data/agents/feature_matrices{params['type']}N{params['N_EXPERTS']}T{params['N_TRIALS']}S{params['N_STATES']}F{params['N_FEAT']}.npy",fmats,allow_pickle=True)
+    np.save(f"data/agents/trajectories{params['type']}N{params['N_EXPERTS']}T{params['N_TRIALS']}S{params['N_STATES']}F{params['N_FEAT']}.npy",trajectories,allow_pickle=True)
 
 
     print("Done playing")
