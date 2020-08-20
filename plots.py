@@ -413,3 +413,21 @@ def plot_gradients(gradients):
     fig.tight_layout()
     plt.savefig(f'results/gradients{str(datetime.date.today())}.png')
     plt.show()
+
+
+
+def plot_seed_inits(seeds,N_FEAT):
+    N = len(seeds)
+    feat_names = [f'F{i+1}' for i in range(N_FEAT)]
+    df_list=[]
+    for n,s in enumerate(seeds):
+        np.random.seed(s)
+        weights = np.random.uniform(size=(N_FEAT,),low=-1,high=1)
+        d = {k:v for k,v in zip(feat_names,weights)}
+        d['seed'] = s
+        df_list.append(d)
+
+    df = pd.DataFrame(df_list).melt(id_vars=["seed"],var_name="Features",value_name="Init Weight")
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x="Features", hue="seed", y="Init Weight", data=df)
+    plt.show()
