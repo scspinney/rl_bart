@@ -99,7 +99,7 @@ if __name__ == "__main__":
     'N_EXPERTS':138,
     }
 
-    agent_params = {'type':'Random', 'lr':0, 'epsilon':1, 'discount':0.8, 'n_states':128, 'n_actions':2}
+    agent_params = {'type':'AlwaysPump', 'lr':0, 'epsilon':0, 'discount':0.8, 'n_states':128, 'n_actions':2}
 
     #transition_probability = np.load('data/transition_prob_Y2.npy')
     popPoints = [64,105,39,96,88,21,121,10,64,32,64,101,26,34,47,121,64,95,75,13,64,112,30,88,9,64,91,17,115,50]

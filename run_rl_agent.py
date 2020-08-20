@@ -37,14 +37,18 @@ class rlAgent(Agent):
 
         self.policy = np.zeros((params['n_states'],params['n_actions']))
 
+        if self.type == 'AlwaysPump':
+            self.policy[:,0] = 1
+
     def update_policy(self,state,action,reward):
 
         if self.type == 'QL': # update for Q-learning agent
 
             self.update_Q(state,action,reward)
 
-        if self.type == 'Random':
-            pass
+        # Non learners, they have set policies:
+        else:
+            return
 
     def init_feature_matrix(self,n_trials,n_feat):
 
