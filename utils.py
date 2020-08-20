@@ -1,5 +1,6 @@
 import numpy as np
 import glob as glob
+import pandas as pd
 import os
 
 
@@ -76,6 +77,20 @@ def read_multi_data(maindir,year,kind="theta"):
         data_list.append(var_dict)
     return data_list
 
+
+def average_multi_seed_estimation(maindir,year,**run_params):
+
+    # Must exclude param that is to be averaged over (e.g. seed)
+
+    df = pd.DataFrame(read_multi_data(maindir, year))
+    df = df.loc[(df[list(run_params)] == pd.Series(run_params)).all(axis=1)]
+    fnames = df.fname.values
+    weights = np.zeros(df.shape)
+    for i,f in enumerate(fnames):
+        w_array = np.load(f) # last updated weights
+        weights[i,:] = w_array[-1].mean(axis=(0,1))
+
+    return weights.mean(axis=0)
 
 
 def print_run_params(**params):
