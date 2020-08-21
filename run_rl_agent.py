@@ -40,6 +40,10 @@ class rlAgent(Agent):
         if self.type == 'AlwaysPump':
             self.policy[:,0] = 1
 
+        elif self.type == 'Optimal':
+            self.policy[:62,0] = 1
+            self.policy[63,1] = 1
+
     def update_policy(self,state,action,reward):
 
         if self.type == 'QL': # update for Q-learning agent
