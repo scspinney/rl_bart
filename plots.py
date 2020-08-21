@@ -303,7 +303,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     sns.set(style="darkgrid")
     out_name = f'results/reward_landscape-{str(datetime.date.today())}.npy'
 
-    if not os.path.exists(out_name) or clobber :
+    if not os.path.exists(out_name) or clobber:
 
         contrast = np.ones((N_FEAT,))
         rewards=np.zeros((N_TRIAL,N_EXPERTS,N_STATES))
@@ -340,7 +340,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         plt.figure(figsize=(60, 40),dpi=900)
 
         ax = sns.relplot(x="state",
-                  y="exp_pred_reward",
+                  y="reward",
                   #y="reward",
                   hue="balloon",
                   kind="line",
@@ -355,7 +355,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
 
 
         # add red line at positive threshold
-        ax.ax.axvline(pos_thres, color='red', alpha=0.2)
+        ax.ax.axvline(64, color='red', alpha=0.2)
         ax.ax.axvline(avg_save_state, color='blue', alpha=0.2)
 
         # add xtick at that pos thresh

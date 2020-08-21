@@ -37,16 +37,12 @@ def split_fname2(s):
     return var_dict
 
 
-def load_data(maindir,year,N):
-
+def load_data(maindir,year):
 
     # trajectories
     traj_paths = os.path.join(maindir, 'data', f'V{year}')
     trajectories = [np.load(p, allow_pickle=True) for p in
                     np.sort(glob.glob(os.path.join(traj_paths, '**', 'traj.npy')))]
-
-    # trajectories = np.load(traj_path,allow_pickle=True)
-    # trajectories = trajectories[1:N]
 
     # feature matrices
     fmat_paths = os.path.join(maindir, 'data', f'V{year}')
@@ -59,10 +55,6 @@ def load_data(maindir,year,N):
     # TODO: temp
     Tprob = Tprob[:-2, :, :-2]
     Tprob = np.ascontiguousarray(Tprob)
-
-    # TODO: temporary for debugging 12th feature
-    trajectories = trajectories[:N]
-    feature_matrices = feature_matrices[:N]
 
     return feature_matrices, Tprob, trajectories
 
@@ -87,10 +79,26 @@ def average_multi_seed_estimation(maindir,year,**run_params):
     fnames = df.fname.values
     weights = np.zeros(df.shape)
     for i,f in enumerate(fnames):
-        w_array = np.load(f) # last updated weights
+        w_array = np.load(os.path.basename(f)) # last updated weights
         weights[i,:] = w_array[-1].mean(axis=(0,1))
 
     return weights.mean(axis=0)
+
+
+def process_weights(path,label):
+
+    weights = np.load(path)
+
+    N = weights.shape[-1]
+    colnames = [f"F{i+1}" for i in range(N)]
+
+    weights = weights[-1].mean(axis=(0, 1)).reshape((1,N))
+
+    wdf = pd.DataFrame(weights,columns=colnames)
+    wdf['Player'] = label
+    wdf_long = pd.melt(wdf, id_vars="Player", var_name="Features", value_name="Weight")
+
+    return wdf_long
 
 
 def print_run_params(**params):
