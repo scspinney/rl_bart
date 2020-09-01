@@ -44,11 +44,18 @@ class rlAgent(Agent):
             self.policy[:62,0] = 1
             self.policy[63,1] = 1
 
+        elif self.type == 'R':
+            self.avg_r = 0
+            self.lr2 = 0.7
+
     def update_policy(self,state,action,reward):
 
         if self.type == 'QL': # update for Q-learning agent
 
             self.update_Q(state,action,reward)
+
+        elif self.type == 'R': # update for R-learning agent
+            self.update_R(state,action,reward)
 
         # Non learners, they have set policies:
         else:
@@ -89,6 +96,10 @@ class rlAgent(Agent):
             return 0
 
         return max([self.policy[state,a] for a in range(self.n_actions)])
+
+    def update_R(self,state,action,reward):
+        self.policy[state,action] = self.policy[state,action]*(1-self.lr) + self.lr*(reward - self.avg_r + self.maxQ(state+1))
+        self.avg_r = self.avg_r*(1-self.lr2) + self.lr2*(reward + self.maxQ(state+1) - self.maxQ(state))
 
     def update_next_fmat(self,t,end_state,not_popped):
 
