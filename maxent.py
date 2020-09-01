@@ -35,8 +35,9 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
     else:
         # set the random seed
-        np.random.seed(seed)
-        theta = np.random.uniform(size=(N_FEAT,))
+        #np.random.seed(seed)
+        #theta = np.random.uniform(size=(N_FEAT,),low=-1,high=1)
+        theta = np.zeros((N_FEAT,))
 
     # keeping track of gradients
     gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,n_iters,N_FEAT))
