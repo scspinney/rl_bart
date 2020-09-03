@@ -17,7 +17,8 @@ ai_players = {'human': 'results/theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
               'qlearner': 'results/QL_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
               'alwayspump': 'results/AlwaysPump_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
               'random': 'results/Random_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
-              'optimal': 'results/Optimal_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy'
+              'optimal': 'results/Optimal_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
+	      'rlearner': 'results/R_ai_theta_V2_N138_E10_LR0.0001_LRD1_S100.npy'
 }
 
 

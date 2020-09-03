@@ -10,7 +10,7 @@ from utils import *
 maindir = '/data/neuroventure/behavioral/nback_and_bart/rl_bart'
 year=2
 N=138
-n_epochs=100
+n_epochs=10
 n_iters=1
 lr=1E-4
 lr_decay=1
@@ -23,7 +23,7 @@ ai=True
 feature_matrices, Tprob, trajectories = load_data(maindir,year)
 
 if ai: #overwrite human expert with ai
-    ai_type = 'Optimal' 
+    ai_type = 'R' 
     feature_matrices = np.load(f'data/agents/feature_matrices{ai_type}N138T30S128F11.npy',allow_pickle=True)
     trajectories = np.load(f'data/agents/trajectories{ai_type}N138T30S128F11.npy',allow_pickle=True)
 
