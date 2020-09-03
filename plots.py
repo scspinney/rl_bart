@@ -297,7 +297,7 @@ def plot_weights(weights,kind='line'):
 
 
 
-def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,kind='line',clobber=True):
+def plot_reward_landscape(player,N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matrices,obs_exp_rewards,avg_save_state,kind='line',clobber=True):
 
 
     sns.set(style="darkgrid")
@@ -330,11 +330,11 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
     rewards = rewards.melt(id_vars=['balloon'],var_name="state",value_name="reward")
     rewards['exp_pred_reward'] = rewards.apply(lambda x: x.reward * (128 - x.state + 1) / (129 - x.state + 1), axis=1)
     expected_rewards = [(1290-20*i)/(129-i) for i in range(1,129)]
-    expected_rewards[100:] = [np.nan for _ in range(100,128)]
+    #expected_rewards[100:] = [np.nan for _ in range(100,128)]
 
     # on the last balloon (30), what is the largest state to still be positive in reward
     # and plot that line in red
-    pos_thres = max(rewards.state[(rewards.reward > 0) & (rewards.balloon == 29)])
+    #pos_thres = max(rewards.state[(rewards.reward > 0) & (rewards.balloon == 29)])
     if kind == 'line':
 
         plt.figure(figsize=(60, 40),dpi=900)
@@ -362,8 +362,8 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         #x_ticks = np.append(ax.ax.get_xticks(), (pos_thres,avg_save_state))
         #x_ticks = x_ticks[1:]
 
-        ax.ax.annotate(f"{int(pos_thres)}",xy=(pos_thres+3,-20),color='r',size=8)
-        ax.ax.annotate(f"{int(avg_save_state)}", xy=(avg_save_state - 8, -20), color='b', size=8)
+        #ax.ax.annotate(f"{int(pos_thres)}",xy=(pos_thres+3,-20),color='r',size=8)
+        #ax.ax.annotate(f"{int(avg_save_state)}", xy=(avg_save_state - 8, -20), color='b', size=8)
 
         # Set xtick locations to the values of the array `x_ticks`
         #ax.ax.set_xticks(x_ticks)
@@ -377,7 +377,7 @@ def plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,feature_matr
         plt.ylabel("Reward")
         plt.tight_layout()
         plt.legend(loc='upper right', fontsize = 'xx-small')
-        plt.savefig(f'results/reward_landscape{str(datetime.date.today())}.png')
+        plt.savefig(f'results/{player}_reward_landscape{str(datetime.date.today())}.png')
         plt.show()
 
 

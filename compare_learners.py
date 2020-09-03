@@ -1,4 +1,7 @@
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
+
 import pandas as pd
 from plots import plot_weights_bar
 from utils import *
@@ -13,15 +16,21 @@ feature_matrices, Tprob, trajectories = load_data(maindir,year)
 ai_players = {'human': 'results/theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
               'qlearner': 'results/QL_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
               'alwayspump': 'results/AlwaysPump_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
-              'random': 'results/Random_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy'}
+              'random': 'results/Random_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy',
+              'optimal': 'results/Optimal_ai_theta_V2_N138_E100_LR0.0001_LRD1_S100.npy'
+}
 
 
 # get weights
 all_weights = process_weights(ai_players['human'],'human')
 
 for p,f in ai_players.items():
-    all_weights.append(process_weights(f,p))
+    if p == 'human':
+        continue
+    weights_df = process_weights(f,p)
+    all_weights = all_weights.append(weights_df)
 
+print(all_weights.Player.unique())
 # bar plots of the weights
 plot_weights_bar(all_weights)
 

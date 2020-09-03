@@ -45,7 +45,7 @@ N_STATES -= 2
 
 #gradients = np.load(f'results/gradients_V{year}.npy')
 #weights = np.load(f'results/theta_V{year}.npy')
-weights = np.load('results/theta_V2_N138_E500_LR0.0001_LRD1_S42.npy')
+weights = np.load('results/theta_V2_N138_E100_LR0.0001_LRD1_S100.npy')
 
 #print(weights.shape)
 # not really the avg, just last update
@@ -67,7 +67,7 @@ plot_reward_landscape(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matr
 
 #avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
 
-lldf=ll_table('results',year,N_TRIAL,trajectories, feature_matrices,1, Tprob)
+#lldf=ll_table('results',year,N_TRIAL,trajectories, feature_matrices,1, Tprob)
 #plot_ll(lldf)
 
 #print(f"Average Log Likelihood on training demonstrations: N = {N_EXPERTS*N_TRIAL} demonstrations, LL = {avg_LL}")
