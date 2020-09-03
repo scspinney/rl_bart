@@ -3,12 +3,17 @@ cycler==0.10.0
 Cython==0.29.15
 future==0.18.2
 kiwisolver==1.2.0
+llvmlite==0.33.0
 matplotlib==3.2.1
+numba==0.50.1
 numpy==1.18.1
 pandas==1.0.1
+pkg-resources==0.0.0
 pyparsing==2.4.7
 pystan==2.19.1.1
 python-dateutil==2.8.1
 pytz==2019.3
+scipy==1.5.2
+seaborn==0.10.1
 six==1.14.0
 torch==1.5.1
