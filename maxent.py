@@ -1,10 +1,11 @@
 import numpy as np
 import os
 from value_iteration import *
+from optimization import Adam
 
 
 
-def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,seed,ai,ai_type,shuffle_training=True,use_prior=False):
+def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr_decay,n_iters,n_epochs,seed,ai,ai_type,method,shuffle_training=True,use_prior=False):
     """
     Maximum Entropy Inverse Reinforcement Learning (Maxent IRL)
     inputs:
@@ -24,6 +25,10 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
     N_TRIALS = 30
     N_FEAT = feature_matrices[0].shape[-1]
 
+    # optimization
+    optim = Adam()
+
+
     # filename prefix
     suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}_S{seed}"
 
@@ -36,13 +41,13 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
     else:
         # set the random seed
         #np.random.seed(seed)
-        #theta = np.random.uniform(size=(N_FEAT,),low=-1,high=1)
-        theta = np.zeros((N_FEAT,))
+        theta = np.random.uniform(size=(N_FEAT,))
+        #theta = np.zeros((N_FEAT,))
 
     # keeping track of gradients
     gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,n_iters,N_FEAT))
     theta_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
-    policy = np.zeros((N_STATES, N_ACTIONS))
+    #policy = np.zeros((N_STATES, N_ACTIONS))
     counter=1
     for epoch in range(n_epochs):
 
@@ -80,7 +85,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                     rewards = np.dot(curr_fmat, theta)
                     #print(rewards)
                     # generate policy
-                    policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, gamma, Tprob)
+                    policy = find_policy_jit(N_STATES, rewards, N_ACTIONS, gamma, Tprob,method)
 
                     # get ESVF
                     esvf = compute_state_visition_freq_jit(N_STATES,Tprob,policy)
@@ -90,6 +95,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                     #if iteration % 100 == 0: print(f"Grad sum: {np.sum(grad)}")
 
                     # update weights
+                    #new_theta = optim.backwards(theta,grad)
                     theta += lr/lr_decay * grad
 
                     gradients[epoch, e, t,iteration, :] = grad
@@ -97,11 +103,6 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                     if counter % 500 == 0:
                         print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete...")
                     counter+=1
-
-                    if abs(grad.sum()) < 4:
-                        # stop from climbing out of min
-                        break
-
 
                 theta_vec[epoch, e, t, :] = theta
 
