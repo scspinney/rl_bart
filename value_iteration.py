@@ -134,12 +134,29 @@ def optimal_value_jit(n_states, n_actions, transition_probabilities, reward,
                 diff = new_diff
             v[s] = max_v
 
+    #
+    # diff = 1000000
+    # while diff > threshold:
+    #     diff = 0
+    #     for s in range(n_states-1):
+    #         max_v = -1000000
+    #         for a in range(n_actions):
+    #             tp_next_pump = transition_probabilities[s, a, s+1]
+    #             exp_return = discount*(tp_next_pump*v[s+1])
+    #
+    #             max_v = max(max_v, reward[s] + exp_return)
+    #
+    #         new_diff = abs(v[s] - max_v)
+    #         if new_diff > diff:
+    #             diff = new_diff
+    #         v[s] = max_v
+
     return v
 
 
 
 def optimal_value(n_states, n_actions, transition_probabilities, reward,
-                  discount, threshold=1e-2):
+                  discount, threshold=1e-3):
     """
     Find the optimal value function.
     n_states: Number of states. int.
@@ -153,15 +170,32 @@ def optimal_value(n_states, n_actions, transition_probabilities, reward,
     """
 
     v = np.zeros(n_states)
+    #
+    # diff = float("inf")
+    # while diff > threshold:
+    #     diff = 0
+    #     for s in range(n_states):
+    #         max_v = float("-inf")
+    #         for a in range(n_actions):
+    #             tp = transition_probabilities[s, a, :]
+    #             max_v = max(max_v, np.dot(tp, reward + discount*v))
+    #
+    #         new_diff = abs(v[s] - max_v)
+    #         if new_diff > diff:
+    #             diff = new_diff
+    #         v[s] = max_v
 
-    diff = float("inf")
+
+    diff = 1000000
     while diff > threshold:
         diff = 0
-        for s in range(n_states):
-            max_v = float("-inf")
+        for s in range(n_states-1):
+            max_v = -1000000
             for a in range(n_actions):
-                tp = transition_probabilities[s, a, :]
-                max_v = max(max_v, np.dot(tp, reward + discount*v))
+                tp_next_pump = transition_probabilities[s, a, s+1]
+                exp_return = discount*(tp_next_pump*v[s+1])
+
+                max_v = max(max_v, reward[s] + exp_return)
 
             new_diff = abs(v[s] - max_v)
             if new_diff > diff:
@@ -206,7 +240,7 @@ def find_policy(n_states, r, n_actions, discount,
 
 
 def find_policy_jit(n_states, r, n_actions, discount,
-                           transition_probability,v=None,stochastic=True,threshold=1e-2):
+                           transition_probability,method,v=None,stochastic=True,threshold=1e-2):
     """
     Find a policy with linear value iteration. Based on the code accompanying
     the Levine et al. GPIRL paper and on Ziebart's PhD thesis (algorithm 9.1).
@@ -221,9 +255,14 @@ def find_policy_jit(n_states, r, n_actions, discount,
         state, with shape (N, A).
     """
 
+    if method == 'value_iteration':
 
-    v = optimal_value_jit(n_states, n_actions, transition_probability, r,
-                      discount, threshold)
+        v = optimal_value_jit(n_states, n_actions, transition_probability, r, discount, threshold)
+        #v = optimal_value(n_states, n_actions, transition_probability, r, discount, threshold)
+
+    elif method == 'average_optimal':
+        #Q = average_optimal(n_states,n_actions,transition_probability,r,threshold)
+        v = average_optimal_jit(n_states, n_actions, transition_probability, r, threshold)
 
     # jit speedup
     Q = _iterateQ(n_states, r, v,n_actions, discount, transition_probability)
@@ -231,6 +270,90 @@ def find_policy_jit(n_states, r, n_actions, discount,
     Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
     Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
     return Q
+
+# @njit
+# def average_optimal_jit(n_states,n_actions,transition_probabilities,reward,threshold):
+#
+#     v = np.zeros(n_states)
+#
+#     diff = 1E100
+#     rho = 0
+#     alpha=0.5
+#     while diff > threshold:
+#         diff = 0
+#         for s in range(n_states-1):
+#             max_v = -1000000
+#             for a in range(n_actions):
+#                 tp = transition_probabilities[s, a, s+1]
+#                 exp_return = tp*v[s+1]
+#                 max_v = max(max_v, reward[s] - rho + exp_return)
+#
+#             new_diff = abs(v[s] - max_v)
+#             if new_diff > diff:
+#                 diff = new_diff
+#             v[s] = max_v
+#             rho = rho*(1-alpha) + alpha*(reward[s] - v[s] + v[s+1])
+#
+#     return v
+
+@njit
+def average_optimal_jit(n_states,n_actions,transition_probabilities,reward,threshold):
+
+    v = np.zeros(n_states)
+
+    diff = 1E100
+    rho = np.mean(reward)
+    alpha=0.5
+    while diff > threshold:
+        diff = 0
+        for s in range(n_states):
+            max_v = -1000000
+            for a in range(n_actions):
+                tp = transition_probabilities[s, a, :]
+                max_v = max(max_v, np.dot(tp, reward - rho + v))
+
+            new_diff = abs(v[s] - max_v)
+            if new_diff > diff:
+                diff = new_diff
+            v[s] = max_v
+            #rho = rho*(1-alpha) + alpha*(reward[s] - v[s] + v[s+1])
+
+    return v
+
+
+def average_optimal(n_states,n_actions,transition_probabilities,reward,threshold):
+
+    v = np.zeros(n_states)
+
+    diff = 1E100
+    rho = 0
+    alpha=0.5
+    while diff > threshold:
+        diff = 0
+        for s in range(n_states-1):
+            max_v = -1000000
+            for a in range(n_actions):
+                tp_next_pump = transition_probabilities[s, a, s+1]
+                exp_return = tp_next_pump*v[s+1]
+
+                max_v = max(max_v, reward[s] - rho + exp_return)
+
+            new_diff = abs(v[s] - max_v)
+            if new_diff > diff:
+                diff = new_diff
+            v[s] = max_v
+            rho = rho*(1-alpha) + alpha*(reward[s] - v[s] + v[s+1])
+
+    Q = np.zeros((n_states, n_actions))
+    for i in range(n_states):
+        for j in range(n_actions):
+            p = transition_probabilities[i, j, :]
+            Q[i, j] = p.dot(reward + v)
+
+    return Q
+
+    #return v
+
 
 @njit
 def _iterateQ(n_states,r,v, n_actions, discount,

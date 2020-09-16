@@ -71,8 +71,8 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                 if ai:
                     curr_fmat = feature_matrix[t]
                 else:
-                    curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
-
+                    #curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
+                    curr_fmat = feature_matrix[t]
                 feat_exp = np.zeros([N_FEAT])
 
                 for state, _ in trajectory:
@@ -95,8 +95,9 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                     #if iteration % 100 == 0: print(f"Grad sum: {np.sum(grad)}")
 
                     # update weights
-                    #new_theta = optim.backwards(theta,grad)
-                    theta += lr/lr_decay * grad
+                    theta = optim.backwards(theta,grad)
+                    #theta += lr/lr_decay * grad
+                    #theta += lr * grad
 
                     gradients[epoch, e, t,iteration, :] = grad
                     
