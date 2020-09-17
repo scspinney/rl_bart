@@ -53,7 +53,9 @@ def load_data(maindir,year):
     Tprob = np.load(os.path.join(maindir, 'data', f'transition_prob_Y{year}.npy'))
 
     # TODO: temp
-    Tprob = Tprob[:-2, :, :-2]
+    #Tprob = Tprob[:-2, :, :-2]
+    # stop and save are absorbing states
+    Tprob[-2:,:,-2:] = 1
     Tprob = np.ascontiguousarray(Tprob)
 
     return feature_matrices, Tprob, trajectories
