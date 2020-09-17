@@ -30,7 +30,7 @@ def ll_table(maindir,year,N_TRIAL,trajectories, feature_matrices,discount, Tprob
 
 
 
-maindir = '/Users/sean/Projects/rl_bart/'
+maindir = '/home/sean/wd/rl_bart'
 year=2
 N=10
 
@@ -42,14 +42,16 @@ feature_matrices, Tprob, trajectories = load_data(maindir,year)
 N_EXPERTS = len(feature_matrices)
 N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
 N_STATES -= 2
+discount =1
 
-gradients = np.load(f'results/gradients_V2_N100_E500_LR0.0001_LRD1_S100.npy')
-weights = np.load('results/theta_V2_N100_E300_LR0.01_LRD1_S100.npy')
+gradients = np.load(f'results/gradients_V2_N100_E500_LRvec_LRDvec_S100.npy')
+weights = np.load('results/theta_V2_N100_E500_LRvec_LRDvec_S100.npy')
+esvf_vec = np.load('results/esvf_V2_N100_E500_LRvec_LRDvec_S100.npy')
 
-#print(weights.shape)
+print(weights.mean(axis=(1,2))[0]/weights.mean(axis=(1,2))[0].sum())
 # not really the avg, just last update
-avg_weights = weights[-1].mean(axis=(0,1))
-
+avg_weights = weights.mean(axis=(1,2))[-1]
+print(avg_weights/avg_weights.sum())
 obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,trajectories)
 
 ### PLOTTING ###
@@ -58,9 +60,11 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 #run_data=read_multi_data('results',year,kind="theta")
 #plot_multi_weights(run_data)
 
-#plot_reward_landscape('human',N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
+plot_reward_landscape('human',N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
 plot_gradients(gradients)
+plot_esvf(esvf_vec,trajectories)
 #plot_weights(weights,'line')
+plot_ll(N_TRIAL,trajectories, feature_matrices, weights, discount, Tprob)
 
 #avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
 

@@ -37,20 +37,20 @@ def split_fname2(s):
     return var_dict
 
 
-def load_data(maindir,year):
+def load_data(maindir,year,player='humans'):
 
     # trajectories
-    traj_paths = os.path.join(maindir, 'data', f'V{year}')
+    traj_paths = os.path.join(maindir, 'data', player,f'V{year}')
     trajectories = [np.load(p, allow_pickle=True) for p in
                     np.sort(glob.glob(os.path.join(traj_paths, '**', 'traj.npy')))]
 
     # feature matrices
-    fmat_paths = os.path.join(maindir, 'data', f'V{year}')
+    fmat_paths = os.path.join(maindir, 'data', player,f'V{year}')
     feature_matrices = [np.load(p, allow_pickle=True) for p in
                         np.sort(glob.glob(os.path.join(fmat_paths, '**', 'fmat.npy')))]
 
     # transition prob: they are all the same so just pick one
-    Tprob = np.load(os.path.join(maindir, 'data', f'transition_prob_Y{year}.npy'))
+    Tprob = np.load(os.path.join(maindir, 'data',f'transition_prob_Y{year}.npy'))
 
     # TODO: temp
     #Tprob = Tprob[:-2, :, :-2]

@@ -30,7 +30,10 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
 
     # filename prefix
-    suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}_S{seed}"
+    if isinstance(lr, list):
+        suffix = f"V{year}_N{N}_E{n_epochs}_LRvec_LRDvec_S{seed}"
+    else:
+        suffix = f"V{year}_N{N}_E{n_epochs}_LR{lr}_LRD{lr_decay}_S{seed}"
 
     #N_STATES-=2
 
@@ -99,9 +102,9 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                     #if iteration % 100 == 0: print(f"Grad sum: {np.sum(grad)}")
 
                     # update weights
-                    theta = optim.backwards(theta,grad)
+                    #theta = optim.backwards(theta,grad)
                     #theta /= theta.sum()
-                    #theta += lr/lr_decay * grad
+                    theta += lr/lr_decay * grad
                     #theta += lr * grad
 
                     gradients[epoch, e, t,iteration, :] = grad
@@ -119,7 +122,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
     prefix=f"{ai_type}_ai_" if ai else ""
 
     #np.save(f'results/{prefix}policy_{suffix}.npy',policy,allow_pickle=True)
-    np.save(f'results/{prefix}esvf_{suffix}.npy',esvf, allow_pickle=True)
+    np.save(f'results/{prefix}esvf_{suffix}.npy',esvf_vec, allow_pickle=True)
     np.save(f'results/{prefix}theta_{suffix}.npy', theta_vec, allow_pickle=True)
     np.save(f'results/{prefix}gradients_{suffix}.npy', gradients, allow_pickle=True)
 

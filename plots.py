@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from likelihood import likelihood
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -378,7 +379,7 @@ def plot_reward_landscape(player,N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,weights,featu
         plt.tight_layout()
         plt.legend(loc='upper right', fontsize = 'xx-small')
         plt.savefig(f'results/{player}_reward_landscape{str(datetime.date.today())}.png')
-        plt.show()
+        #plt.show()
 
 
 def plot_gradients(gradients):
@@ -418,12 +419,12 @@ def plot_gradients(gradients):
     #sns.lineplot(x="epoch",y="gradient",hue="feature",data=gdf)
 
 
-    sns.relplot(x="epoch", y="gradient",
+    g = sns.relplot(x="epoch", y="gradient",
                 col="feature",
                 # height=5, aspect=.75,
                 facet_kws=dict(sharey=False),
                 kind="line", legend="brief", data=gdf)
-
+    g.fig.suptitle("Gradient of the MaxEnt weights")
 
     #sns.lineplot(x="epoch",y="gradient",data=gdf[["epoch","gradient"]])
 
@@ -462,8 +463,72 @@ def plot_gradients(gradients):
 
     #fig.tight_layout()
     plt.savefig(f'results/gradients{str(datetime.date.today())}.png')
-    plt.show()
+    #plt.show()
 
+def plot_esvf(esvf_vec,trajectories):
+
+    N_EPOCHS, N_EXPERTS, N_TRIALS, N_STATES = np.shape(esvf_vec)
+    print(np.shape(esvf_vec))
+    esvf_vec = esvf_vec.mean(axis=(1,2))
+    esvfdf = pd.DataFrame(
+        {'epoch': np.repeat(range(1, 501), 130), 'state': 500 * [s for s in range(1, 131)], 'esvf': esvf_vec.flatten()})
+
+    svf = np.zeros(N_STATES)
+    for e_traj in trajectories:
+        for trajectory in e_traj:
+            for s,a in trajectory:
+                svf[s]+=1
+    svf /= (N_EXPERTS*N_TRIALS)
+    # svfdict = {'epoch':[],
+    #          'balloon':[],
+    #          'expert':[],
+    #          'state':[],
+    #          'esvf':[]}
+
+    # for epoch in range(N_EPOCHS):
+    #     for e in range(N_EXPERTS):
+    #         for b in range(N_TRIALS):
+    #             for s in range(N_STATES):
+    #                     svfdict['epoch'].append(epoch)
+    #                     svfdict['expert'].append(e)
+    #                     svfdict['balloon'].append(b)
+    #                     svfdict['state'].append(s)
+    #                     svfdict['esvf'].append(esvf_vec[epoch,e,b,s])
+
+    # svfdf = pd.DataFrame().from_dict(svfdict)
+
+    # Initialize the figure
+    plt.style.use('seaborn-darkgrid')
+
+    # sns.lineplot(x="epoch", y="esvf",
+    #             hue="state", legend="brief", data=svfdf)
+
+    g=sns.relplot(x="state", y="esvf", hue="epoch", data=esvfdf)
+    plt.plot(svf,color='red')
+    g.fig.suptitle("Expected State Visitation Frequencies")
+
+    plt.savefig(f'results/esvf{str(datetime.date.today())}.png')
+    #plt.show()
+
+def plot_ll(N_TRIAL,trajectories, feature_matrices, weights, discount, Tprob):
+
+    N_EPOCHS, N_EXPERTS, N_TRIALS, N_FEAT = np.shape(weights)
+
+    epochs = [0,10,20,40,80,160,320,400,499]
+    lldict = {'epoch':[],
+              'average LL': []}
+
+    for epoch in epochs:
+        w = weights[epoch].mean(axis=(0,1))
+        lldict['epoch'].append(epoch)
+        lldict['average LL'].append(likelihood(N_TRIAL,trajectories, feature_matrices, w, discount, Tprob))
+
+    ll = pd.DataFrame.from_dict(lldict)
+
+    g=sns.relplot(x="epoch",y="average LL",data=ll)
+
+    g.fig.suptitle("Average Log Likelihood")
+    plt.savefig(f'results/avgLL{str(datetime.date.today())}.png')
 
 
 def plot_seed_inits(seeds,N_FEAT):

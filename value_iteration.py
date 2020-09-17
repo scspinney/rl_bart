@@ -109,6 +109,7 @@ def value_iteration(n_states, n_actions, transition_probabilities, reward,discou
 
     diff = 1000000
     while diff > threshold:
+        diff = 0
         for s in range(n_states-2):
             max_v = -1000000
             for a in range(n_actions):
@@ -117,12 +118,11 @@ def value_iteration(n_states, n_actions, transition_probabilities, reward,discou
                 max_v = max(max_v, new_v)
 
             new_diff = abs(v[s] - max_v)
-            if new_diff < diff:
+            if new_diff > diff:
                 diff = new_diff
             v[s] = max_v
 
     return v
-
 
 
 

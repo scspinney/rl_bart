@@ -3,7 +3,7 @@ import numpy as np
 
 class Adam():
 
-    def __init__(self,lr=0.0001,n_weights=11, n_iter=10, beta1=0.9, beta2=0.999, epsilon=1e-8, delta=1e-3):
+    def __init__(self,lr=0.001,n_weights=11, n_iter=10, beta1=0.9, beta2=0.999, epsilon=1e-8, delta=1e-3):
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
