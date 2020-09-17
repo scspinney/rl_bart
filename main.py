@@ -12,9 +12,9 @@ np.set_printoptions(suppress=True)
 maindir = '/Users/sean/Projects/rl_bart'
 year=2
 N=100
-n_epochs=10
+n_epochs=100
 n_iters=1
-lr=1E-4
+lr=1E-1
 lr_decay=1
 gamma=1
 seed=100
@@ -29,6 +29,13 @@ if ai: #overwrite human expert with ai
     ai_type = 'R'
     feature_matrices = np.load(f'data/agents/feature_matrices{ai_type}N138T30S128F11.npy',allow_pickle=True)
     trajectories = np.load(f'data/agents/trajectories{ai_type}N138T30S128F11.npy',allow_pickle=True)
+
+    # quick hack to add the two end states
+    e,b,s,f = feature_matrices.shape
+    tmp = np.zeros((e,b,s+2,f))
+    tmp[:,:,:s,:] = feature_matrices
+    tmp[:,:,-2:,:] = 0
+    feature_matrices = tmp
 
 else:
     ai_type=""

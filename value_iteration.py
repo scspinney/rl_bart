@@ -77,7 +77,8 @@ def compute_state_visition_freq_jit(N_STATES,Tprob,policy):
         for s in range(N_STATES-1):
 
             # pump no pop
-            tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
+            #tmp_exp_svf[s+1] = tmp_exp_svf[s+1] + expected_svf[s]*policy[s,0]*Tprob[s,0,s+1]
+            tmp_exp_svf[s + 1] = tmp_exp_svf[s + 1] + expected_svf[s] * policy[s,0] * Tprob[s, 0, s + 1]
 
             # pump and pop
            # tmp_exp_svf[-1] = tmp_exp_svf[-1] + expected_svf[s]*policy[s, 0]*Tprob[s,0,-1]
@@ -100,6 +101,28 @@ def compute_state_visition_freq_jit(N_STATES,Tprob,policy):
             break
 
     return expected_svf
+
+@njit
+def value_iteration(n_states, n_actions, transition_probabilities, reward,discount,threshold=1e-4):
+
+    v = np.zeros(n_states)
+
+    diff = 1000000
+    while diff > threshold:
+        for s in range(n_states-2):
+            max_v = -1000000
+            for a in range(n_actions):
+                tp = transition_probabilities[s, a, s+1:]
+                new_v = reward[s] + np.dot(tp, v[s+1:])
+                max_v = max(max_v, new_v)
+
+            new_diff = abs(v[s] - max_v)
+            if new_diff < diff:
+                diff = new_diff
+            v[s] = max_v
+
+    return v
+
 
 
 
@@ -226,7 +249,6 @@ def find_policy(n_states, r, n_actions, discount,
     v = optimal_value(n_states, n_actions, transition_probability, r,
                       discount, threshold)
 
-
     # Get Q using equation 9.2 from Ziebart's thesis.
     Q = np.zeros((n_states, n_actions))
     for i in range(n_states):
@@ -235,7 +257,12 @@ def find_policy(n_states, r, n_actions, discount,
             Q[i, j] = p.dot(r + discount*v)
 
     Q -= Q.max(axis=1).reshape((n_states, 1))
-    Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+    # greedy
+    Q = np.argmax(Q,1)
+
+    # soft
+    #Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
+
     return Q
 
 
@@ -257,7 +284,8 @@ def find_policy_jit(n_states, r, n_actions, discount,
 
     if method == 'value_iteration':
 
-        v = optimal_value_jit(n_states, n_actions, transition_probability, r, discount, threshold)
+        #v = optimal_value_jit(n_states, n_actions, transition_probability, r, discount, threshold)
+        v = value_iteration(n_states, n_actions, transition_probability, r, discount, threshold)
         #v = optimal_value(n_states, n_actions, transition_probability, r, discount, threshold)
 
     elif method == 'average_optimal':
@@ -265,9 +293,14 @@ def find_policy_jit(n_states, r, n_actions, discount,
         v = average_optimal_jit(n_states, n_actions, transition_probability, r, threshold)
 
     # jit speedup
-    Q = _iterateQ(n_states, r, v,n_actions, discount, transition_probability)
+    #Q = _iterateQ(n_states, r, v,n_actions, discount, transition_probability)
+    Q = _policy(n_states, r, v,n_actions, discount, transition_probability)
 
     Q -= Q.max(axis=1).reshape((n_states, 1))  # For numerical stability.
+
+    # greedy
+    #Q = np.argmax(Q,0)
+
     Q = np.exp(Q)/np.exp(Q).sum(axis=1).reshape((n_states, 1))
     return Q
 
@@ -364,5 +397,17 @@ def _iterateQ(n_states,r,v, n_actions, discount,
         for j in range(n_actions):
             p = transition_probability[i, j, :]
             Q[i, j] = p.dot(r + discount*v)
+
+    return Q
+
+
+@njit
+def _policy(n_states,reward,v, n_actions, discount,
+                           transition_probability):
+
+    Q = np.zeros((n_states, n_actions))
+    for s in range(n_states):
+        tp = transition_probability[s, 0, s+1:]
+        Q[s, 0] = reward[s] + np.dot(tp,v[s+1:])
 
     return Q

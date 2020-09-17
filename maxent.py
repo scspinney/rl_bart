@@ -46,12 +46,14 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
     # keeping track of gradients
     gradients = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,n_iters,N_FEAT))
+    esvf_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_STATES))
     theta_vec = np.zeros((n_epochs,N_EXPERTS,N_TRIALS,N_FEAT))
     #policy = np.zeros((N_STATES, N_ACTIONS))
     counter=1
     for epoch in range(n_epochs):
 
-        print(f"Theta: {theta}")
+        print(f"Theta: {theta/theta.sum()}")
+        #print(f"Theta: {theta}")
         lr_decay+=1
         for e in range(N_EXPERTS):
 
@@ -73,6 +75,7 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
                 else:
                     #curr_fmat = feature_matrix[t][:-2,:] # this traj feature matrix
                     curr_fmat = feature_matrix[t]
+
                 feat_exp = np.zeros([N_FEAT])
 
                 for state, _ in trajectory:
@@ -92,28 +95,31 @@ def maxent_irl(maindir,N,year,feature_matrices,Tprob, gamma, trajectories, lr,lr
 
                     # compute gradients
                     grad = feat_exp - esvf.dot(curr_fmat)
+                    #print(f"Grad: {grad}")
                     #if iteration % 100 == 0: print(f"Grad sum: {np.sum(grad)}")
 
                     # update weights
                     theta = optim.backwards(theta,grad)
+                    #theta /= theta.sum()
                     #theta += lr/lr_decay * grad
                     #theta += lr * grad
 
                     gradients[epoch, e, t,iteration, :] = grad
+                    esvf_vec[epoch, e, t, :] = esvf
                     
                     if counter % 500 == 0:
                         print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete...")
                     counter+=1
 
                 theta_vec[epoch, e, t, :] = theta
-
+        print(f"Average epoch grad sum: {np.mean(gradients[epoch,:,:,:,:])}")
 
     print(f"Progress at {100*(counter/(n_iters*N_TRIALS*n_epochs*N_EXPERTS)):.2f}% complete. Saving policy, esvf, weights, and gradients in results.")
 
     prefix=f"{ai_type}_ai_" if ai else ""
 
     #np.save(f'results/{prefix}policy_{suffix}.npy',policy,allow_pickle=True)
-    #np.save(f'results/{prefix}esvf_{suffix}.npy',esvf, allow_pickle=True)
+    np.save(f'results/{prefix}esvf_{suffix}.npy',esvf, allow_pickle=True)
     np.save(f'results/{prefix}theta_{suffix}.npy', theta_vec, allow_pickle=True)
     np.save(f'results/{prefix}gradients_{suffix}.npy', gradients, allow_pickle=True)
 
