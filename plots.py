@@ -385,64 +385,82 @@ def plot_gradients(gradients):
 
 
     #TODO: hard coded fix but rerun with proper gradient sizing
-    avg_grads = gradients.mean(axis=1)
+    # averaged across experts
+    avg_grads = gradients.mean(axis=1).mean(axis=1)
 
-    N_EPOCHS, N_TRIALS, N_ITER, N_FEAT = np.shape(avg_grads)
+    N_EPOCHS, N_ITER, N_FEAT = np.shape(avg_grads)
+    #N_EPOCHS, N_EXPERTS, N_TRIALS, N_ITER, N_FEAT = np.shape(gradients)
 
     gdict = {'epoch':[],
-             'balloon':[],
+             #'balloon':[],
+             #'expert':[],
              'iteration':[],
              'feature':[],
              'gradient':[]}
 
     for epoch in range(N_EPOCHS):
-        for b in range(N_TRIALS):
-            for iter in range(N_ITER):
-                for f in range(N_FEAT):
-                    gdict['epoch'].append(epoch)
-                    gdict['balloon'].append(b)
-                    gdict['iteration'].append(iter)
-                    gdict['feature'].append(f)
-                    gdict['gradient'].append(avg_grads[epoch,b,iter,f])
+        #for e in range(N_EXPERTS):
+            #for b in range(N_TRIALS):
+                for iter in range(N_ITER):
+                    for f in range(N_FEAT):
+                        gdict['epoch'].append(epoch)
+                        #gdict['expert'].append(e)
+                        #gdict['balloon'].append(b)
+                        gdict['iteration'].append(iter)
+                        gdict['feature'].append(f)
+                        gdict['gradient'].append(avg_grads[epoch,iter,f])
 
     gdf = pd.DataFrame().from_dict(gdict)
-
+    gdf['absolute value gradient'] = abs(gdf['gradient'])
     # Initialize the figure
     plt.style.use('seaborn-darkgrid')
 
-    fig, axs = plt.subplots(N_EPOCHS+1, N_FEAT, figsize=(100,40), sharex=True, sharey=False)
-
-    colors = plt.cm.coolwarm(np.linspace(0, 1, N_TRIALS))
-    line_labels = [i+1 for i in range(N_TRIALS)]
-    for e in range(N_EPOCHS):
-        for f in range(N_FEAT):
-            num = N_FEAT*e+f + 1
-            f_gdf = gdf[(gdf['feature'] == f) & (gdf['epoch'] == e)]
-
-            for i, (name, group) in enumerate(f_gdf.groupby("balloon")):
-                axs[e,f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
-                #axs[f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
-
-            axs[e,f].set_title(f"Epoch: {e}, Feature: {f}")
-            #axs[f].set_title(f"Epoch: {e}, Feature: {f}")
-
-            # Not ticks everywhere
-            if num in range(N_FEAT):
-                axs[e,f].tick_params(labelbottom='off')
-                #axs[f].tick_params(labelbottom='off')
-            if num not in [1, N_FEAT+1]:
-                axs[e,f].tick_params(labelleft='off')
-                #axs[f].tick_params(labelleft='off')
-            axs[e,f].tick_params(labelsize='small')
-            #axs[f].tick_params(labelsize='small')
-
-            if e == 0 and f == 10:
-                axs[e,f].legend()
-                #axs[f].legend()
+    #sns.lineplot(x="epoch",y="gradient",hue="feature",data=gdf)
 
 
+    sns.relplot(x="epoch", y="gradient",
+                col="feature",
+                # height=5, aspect=.75,
+                facet_kws=dict(sharey=False),
+                kind="line", legend="brief", data=gdf)
 
-    fig.tight_layout()
+
+    #sns.lineplot(x="epoch",y="gradient",data=gdf[["epoch","gradient"]])
+
+    # fig, axs = plt.subplots(N_EPOCHS+1, N_FEAT, figsize=(100,40), sharex=True, sharey=False)
+    #
+    # colors = plt.cm.coolwarm(np.linspace(0, 1, N_TRIALS))
+    # line_labels = [i+1 for i in range(N_TRIALS)]
+
+    # for e in range(N_EPOCHS):
+    #     for f in range(N_FEAT):
+    #         num = N_FEAT*e+f + 1
+    #         f_gdf = gdf[(gdf['feature'] == f) & (gdf['epoch'] == e)]
+    #
+    #         for i, (name, group) in enumerate(f_gdf.groupby("balloon")):
+    #             axs[e,f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
+    #             #axs[f].plot(group['iteration'], group['gradient'], color=colors[i], label=f"Balloon {i}")
+    #
+    #         axs[e,f].set_title(f"Epoch: {e}, Feature: {f}")
+    #         #axs[f].set_title(f"Epoch: {e}, Feature: {f}")
+    #
+    #         # Not ticks everywhere
+    #         if num in range(N_FEAT):
+    #             axs[e,f].tick_params(labelbottom='off')
+    #             #axs[f].tick_params(labelbottom='off')
+    #         if num not in [1, N_FEAT+1]:
+    #             axs[e,f].tick_params(labelleft='off')
+    #             #axs[f].tick_params(labelleft='off')
+    #         axs[e,f].tick_params(labelsize='small')
+    #         #axs[f].tick_params(labelsize='small')
+    #
+    #         if e == 0 and f == 10:
+    #             axs[e,f].legend()
+    #             #axs[f].legend()
+
+
+
+    #fig.tight_layout()
     plt.savefig(f'results/gradients{str(datetime.date.today())}.png')
     plt.show()
 

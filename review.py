@@ -43,8 +43,8 @@ N_EXPERTS = len(feature_matrices)
 N_TRIAL, N_STATES, N_FEAT = np.shape(feature_matrices[0])
 N_STATES -= 2
 
-gradients = np.load(f'results/gradients_V2_N100_E100_LR0.1_LRD1_S100.npy')
-weights = np.load('results/theta_V2_N100_E100_LR0.1_LRD1_S100.npy')
+gradients = np.load(f'results/gradients_V2_N100_E500_LR0.0001_LRD1_S100.npy')
+weights = np.load('results/theta_V2_N100_E300_LR0.01_LRD1_S100.npy')
 
 #print(weights.shape)
 # not really the avg, just last update
@@ -60,7 +60,7 @@ obs_exp_rewards, avg_save_state = get_stats(N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,tr
 
 #plot_reward_landscape('human',N_EXPERTS,N_TRIAL,N_STATES,N_FEAT,avg_weights,feature_matrices,obs_exp_rewards,avg_save_state,'line',clobber=True)
 plot_gradients(gradients)
-plot_weights(weights,'line')
+#plot_weights(weights,'line')
 
 #avg_LL = likelihood(N_TRIAL,trajectories, feature_matrices, avg_weights, discount=1, Tprob=Tprob)
 
